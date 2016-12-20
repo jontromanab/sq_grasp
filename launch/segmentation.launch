@@ -1,0 +1,27 @@
+<launch>
+  <node name ="segmentation_node" pkg="sq_grasp" type="segmentation_node" output="screen">
+  <param name="cloud_topic" value="/camera/depth_registered/points" />
+  <param name="zmax" value="2.0" />
+  <param name="zmin" value="0.03" />
+  <param name= "th_points" value="50" />
+
+  <!--Supervoxel parameters -->
+  <param name="voxel_resoluton" value="0.0075f" />
+  <param name="seed_resolution" value="0.015f" />
+  <param name= "color_importance" value="0.0f" />
+  <param name="spatial_importance" value="1.0f" />
+  <param name="normal_importance" value="4.0f" />
+
+  <!-- LCCP parameters -->
+  <param name="use_extended_convexity" value="false" />
+  <param name="use_sanity_criterion" value="true" />
+  <param name="concavity_tolerance_threshold" value="10" />
+  <param name="smoothness_threshold" value="0.1f" />
+  <param name="min_segment_size" value="3" />
+
+
+  </node>
+
+
+
+</launch>
