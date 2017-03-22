@@ -83,10 +83,6 @@ install(TARGETS sampling fitting segmentation utils sq_fitter
 )
 
 #Executables for nodes
-add_executable(filter_cloud_node src/nodes/filter_cloud_node.cpp)
-add_dependencies(filter_cloud_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(filter_cloud_node  ${catkin_LIBRARIES})
-
 add_executable(sq_fitter_node src/nodes/sq_fitter_node.cpp)
 add_dependencies(sq_fitter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sq_fitter_node sq_fitter  ${catkin_LIBRARIES})
