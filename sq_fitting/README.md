@@ -46,3 +46,10 @@ Start the kinect: (for kinect1)
 run the superquadrics node
 
 **roslaunch sq_fitting sq_fit.launch**
+
+#### Published Topics:
+**superq/filtered_cloud/** (point cloud) publishes the filtered cloud
+**superq/table/** (point cloud) publishes the segmented table only
+**superq/tabletop_objects/** (point cloud) publishes the objects on the table
+**superq/segmented_objects/** (point cloud) publishes the segmented individual objects with different colors
+**superq/superquadrics/** (point cloud) publises sampled superquadrics
