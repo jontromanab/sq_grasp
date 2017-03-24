@@ -53,3 +53,7 @@ run the superquadrics node
 * **superq/tabletop_objects/** (point cloud) publishes the objects on the table
 * **superq/segmented_objects/** (point cloud) publishes the segmented individual objects with different colors
 * **superq/superquadrics/** (point cloud) publises sampled superquadrics
+
+![qjmhk1490359827](https://cloud.githubusercontent.com/assets/3790876/24294828/c4fc270c-105d-11e7-9248-cb32d9a5ea37.jpg)
+
+
