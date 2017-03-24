@@ -23,3 +23,8 @@ with *n* is between *-PI/2* and *PI/2* and *w* is between *-PI* and *PI*, where 
 To fit the superquadric model to a point cloud data, distance *d* from the points to the function *f(a,x,y,z)* must be minimized  in terms of radial distance *||OP||*
 
 ![eq2](https://cloud.githubusercontent.com/assets/3790876/24290336/3526a5d4-104a-11e7-91fe-19322148df95.png)
+
+
+### How to run??
+
+To fit superquadrics on objects, first setup the launch file. Setup the cloud_topic
