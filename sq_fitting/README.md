@@ -1,7 +1,7 @@
-#Superquadics Fitting
+# Superquadics Fitting
 ====
 
-###Real time superquadric fitting on objects in dense clutter
+### Real time superquadric fitting on objects in dense clutter
 
 
 
