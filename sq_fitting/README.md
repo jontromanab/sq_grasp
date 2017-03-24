@@ -35,3 +35,6 @@ To fit superquadrics on objects, first setup the launch file.
 
 
 The workspace takes 6 parameters -x, +x, -y, +y, -z, +z which are defined in the camera frame ( Special attention should be provided while using the package where the camera is connected to the robot. ~~The parameters are in world frame.~~ **Parameters are in camera frame**)
+
+3. Setup segmentation parameters
+The pacakge relies on LCCP (Local Convexity connected pathes) segmentation for segmenting objects in dense clutter. After the table plane is removed, the objects on the table are clustered into individual objects. Most of the parameters are for supervoxel and lccp segmentation. The extra parameters are **zmin, zmax** and **th_points**
