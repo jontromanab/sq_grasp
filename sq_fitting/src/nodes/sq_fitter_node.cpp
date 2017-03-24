@@ -26,7 +26,7 @@ const double WORKSPACE[6] = {-0.23, 0.23, -0.35, 0.07, 0.95, 2.5};
 int main(int argc, char **argv)
 {
   // Set up ROS.
-  ros::init(argc, argv, "sq_fitting_node");
+  ros::init(argc, argv, "superq");
   ros::NodeHandle nh_("~");
 
   SQFitter::Parameters params;
