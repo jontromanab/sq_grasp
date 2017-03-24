@@ -56,4 +56,8 @@ run the superquadrics node
 
 ![qjmhk1490359827](https://cloud.githubusercontent.com/assets/3790876/24294828/c4fc270c-105d-11e7-9248-cb32d9a5ea37.jpg)
 
+To fit superquadrics on a pcd file, run
 
+**rosrun sq_fitting seg_and_fit_test_pcd /your pcd file name**
+
+It will generated a new pcd file called objects_superquadrics.pcd
