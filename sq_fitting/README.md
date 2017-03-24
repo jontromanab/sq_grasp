@@ -9,7 +9,4 @@ face are arbitrary real numbers, allowing for a more flexible
 set of shapes while keeping the symmetry characteristics of
 the regular quadric.
 
-A superquadric can be obtained as the spherical product of two superellipses  $$S_1$$ and $$S_2$$, to obtain the parametric equation
-
-%5Cfrac%7B%5Csigma%7D%7B%5Cmu%7D
 
