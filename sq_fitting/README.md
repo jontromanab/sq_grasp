@@ -37,4 +37,12 @@ To fit superquadrics on objects, first setup the launch file.
 The workspace takes 6 parameters -x, +x, -y, +y, -z, +z which are defined in the camera frame ( Special attention should be provided while using the package where the camera is connected to the robot. ~~The parameters are in world frame.~~ **Parameters are in camera frame**)
 
 3. Setup segmentation parameters
-The pacakge relies on LCCP (Local Convexity connected pathes) segmentation for segmenting objects in dense clutter. After the table plane is removed, the objects on the table are clustered into individual objects. Most of the parameters are for supervoxel and lccp segmentation. The extra parameters are **zmin**(minimum distance from the z-plane), **zmax**(minimum distance from the z-plane) and **th_points**(Number of points to be considered as an object)
+The pacakge relies on LCCP (Local Convexity connected pathes) segmentation for segmenting objects in dense clutter. After the table plane is removed, the objects on the table are clustered into individual objects. Most of the parameters are for supervoxel and lccp segmentation. The extra parameters are **zmin**(minimum distance from the z-plane), **zmax**(minimum distance from the z-plane) and **th_points**(Number of points to be considered as an object). The bool parameter **remove_nan** decides to remove the nan points from the online cloud.
+
+Start the kinect: (for kinect1)
+
+**roslaunch openni_launch openni.launch**
+
+run the superquadrics node
+
+**roslaunch sq_fitting sq_fit.launch**
