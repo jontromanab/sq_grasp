@@ -3,5 +3,18 @@
 
 ### Real time superquadric fitting on objects in dense clutter
 
+A superquadric can be defined a generalized quadric in
+which the exponents of the implicit representation of the sur-
+face are arbitrary real numbers, allowing for a more flexible
+set of shapes while keeping the symmetry characteristics of
+the regular quadric.
+
+A superquadric can be obtained as the spherical product of two superellipses  $S_1$ and $S_2$, to obtain the parametric equation
+
+\begin{equation}
+r(\eta, \omega) = S_1 \big(\eta) \oplus S_2 \big(\omega) =\left(\begin{array}{c} a_1\cos^{\epsilon_1} \eta \cos^ {\epsilon_2} \omega \\ a_2\cos^{\epsilon_1} \eta \sin^ {\epsilon_2} \omega \\a_3\sin ^{\epsilon_1} \eta \end{array}\right),
+\label{eq:superParam}
+\end{equation}
+with $\eta  \in[\frac{-\pi}{2},\frac{\pi}{2}]$ and $\omega \in[-\pi, \pi]$,
 
 
