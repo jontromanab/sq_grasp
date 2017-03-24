@@ -27,7 +27,7 @@ To fit the superquadric model to a point cloud data, distance *d* from the point
 
 ### How to run??
 
-To fit superquadrics on objects, first setup the launch file. 
+To fit superquadrics on objects in real time, first setup the launch file. 
 1. Setup the cloud_topic
 * for kinect1: **/camera/depth_registered/points**
 * for kinect2: **/kinect2/sd/points**
