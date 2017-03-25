@@ -48,11 +48,12 @@ run the superquadrics node
 **roslaunch sq_fitting sq_fit.launch**
 
 #### Published Topics:
-* **superq/filtered_cloud/** (point cloud) publishes the filtered cloud
-* **superq/table/** (point cloud) publishes the segmented table only
-* **superq/tabletop_objects/** (point cloud) publishes the objects on the table
-* **superq/segmented_objects/** (point cloud) publishes the segmented individual objects with different colors
-* **superq/superquadrics/** (point cloud) publises sampled superquadrics
+* **superq/filtered_cloud/** (sensor_msgs/PointCloud2) publishes the filtered cloud
+* **superq/table/** (sensor_msgs/PointCloud2) publishes the segmented table only
+* **superq/tabletop_objects/** (sensor_msgs/PointCloud2) publishes the objects on the table
+* **superq/segmented_objects/** (sensor_msgs/PointCloud2) publishes the segmented individual objects with different colors
+* **superq/superquadrics/** (sensor_msgs/PointCloud2) publises sampled superquadrics
+* **superq/poses/** (geometry_msgs::PoseArray) publishes the poses of the superquadrics
 
 ![qjmhk1490359827](https://cloud.githubusercontent.com/assets/3790876/24294828/c4fc270c-105d-11e7-9248-cb32d9a5ea37.jpg)
 
@@ -61,3 +62,6 @@ To fit superquadrics on a pcd file, run
 **rosrun sq_fitting seg_and_fit_test_pcd /your pcd file name**
 
 It will generated a new pcd file called objects_superquadrics.pcd
+To visualize the generated pcd file
+
+**pcl_viewer objects_superquadrics.pcd**
