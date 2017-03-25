@@ -43,6 +43,11 @@ Start the kinect: (for kinect1)
 
 **roslaunch openni_launch openni.launch**
 
+
+Start the kinect: (for kinect2)
+
+**roslaunch kinect2_bridge kinect2_bridge publish_tf:=true**
+
 run the superquadrics node
 
 **roslaunch sq_fitting sq_fit.launch**
