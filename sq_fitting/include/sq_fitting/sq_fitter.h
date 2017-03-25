@@ -6,6 +6,7 @@
 #include<sq_fitting/sampling.h>
 #include<sq_fitting/sq.h>
 #include <pcl/filters/filter.h>
+#include <geometry_msgs/PoseArray.h>
 
 class SQFitter
 {
@@ -46,6 +47,7 @@ private:
 
   std::vector<CloudPtr> Objects_;
   std::vector<sq_fitting::sq> params_;
+  geometry_msgs::PoseArray poseArr_;
 
   ros::Subscriber cloud_sub_;
   ros::Publisher table_pub_;
@@ -53,6 +55,7 @@ private:
   ros::Publisher objects_pub_;
   ros::Publisher superquadrics_pub_;
   ros::Publisher filtered_cloud_pub_;
+  ros::Publisher poses_pub_;
   SQFitter::Parameters sq_param_;
   Segmentation::Parameters seg_param_;
   bool initialized;

@@ -10,6 +10,7 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const 
   objects_pub_ = node.advertise<sensor_msgs::PointCloud2>("segmented_objects",10);
   superquadrics_pub_ = node.advertise<sensor_msgs::PointCloud2>("superquadrics",10);
   filtered_cloud_pub_ = node.advertise<sensor_msgs::PointCloud2>("filtered_cloud",10);
+  poses_pub_ = node.advertise<geometry_msgs::PoseArray>("poses",10);
   this->sq_param_ = params;
   this->seg_param_ = params.seg_params;
   this->initialized = true;
@@ -110,9 +111,13 @@ void SQFitter::getSuperquadricParameters(std::vector<sq_fitting::sq>& params)
 void SQFitter::sampleSuperquadrics(const std::vector<sq_fitting::sq>& params)
 {
   CloudPtr sq_cloud_pcl_(new PointCloud);
+  poseArr_.poses.resize(0);
   for(int i=0;i<params.size();++i)
   {
     Sampling* sam = new Sampling(params[i]);
+    poseArr_.poses.push_back(params[i].pose);
+    poseArr_.header.frame_id =  this->input_msg_.header.frame_id;
+    poseArr_.header.stamp = ros::Time::now();
     sam->sample_pilu_fisher();
     CloudPtr sq_cloud(new PointCloud);
     sam->getCloud(sq_cloud);
@@ -148,6 +153,7 @@ void SQFitter::publishClouds()
   filtered_cloud_pub_.publish(filtered_cloud_ros_);
   objects_on_table_pub_.publish(objects_on_table_cloud_);
   superquadrics_pub_.publish(sq_cloud_);
+  poses_pub_.publish(poseArr_);
 }
 
 
