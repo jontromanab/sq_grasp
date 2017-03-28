@@ -38,11 +38,16 @@ private:
   sensor_msgs::PointCloud2 sq_cloud_;
   sensor_msgs::PointCloud2 filtered_cloud_ros_;
   sensor_msgs::PointCloud2 input_msg_;
+  sensor_msgs::PointCloud2 cut_cloud_ros_;
+
   CloudPtr cloud_;
   CloudPtr filtered_cloud_;
   CloudPtr table_plane_cloud_;
   CloudPtr segmented_objects_cloud_;
   CloudPtr objects_on_table_;
+  CloudPtr cut_cloud_;
+
+
 
 
   std::vector<CloudPtr> Objects_;
@@ -56,6 +61,9 @@ private:
   ros::Publisher superquadrics_pub_;
   ros::Publisher filtered_cloud_pub_;
   ros::Publisher poses_pub_;
+  ros::Publisher cut_cloud_pub_;
+
+
   SQFitter::Parameters sq_param_;
   Segmentation::Parameters seg_param_;
   bool initialized;

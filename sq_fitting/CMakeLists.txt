@@ -73,7 +73,7 @@ add_library(sq_fitter  src/sq_fitting/sq_fitter.cpp)
 target_link_libraries(sampling utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(fitting utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(utils  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS} )
-target_link_libraries(segmentation  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
+target_link_libraries(segmentation  utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(sq_fitter segmentation fitting utils sampling ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 
 

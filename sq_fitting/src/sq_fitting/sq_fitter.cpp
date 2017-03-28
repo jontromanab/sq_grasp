@@ -2,7 +2,7 @@
 
 SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const SQFitter::Parameters &params)
   : table_plane_cloud_(new PointCloud), segmented_objects_cloud_(new PointCloud), objects_on_table_(new PointCloud),
-  cloud_(new PointCloud), filtered_cloud_(new PointCloud)
+  cloud_(new PointCloud), filtered_cloud_(new PointCloud), cut_cloud_(new PointCloud)
 {
   cloud_sub_ = node.subscribe(cloud_topic, 1, &SQFitter::cloud_callback, this);
   table_pub_ = node.advertise<sensor_msgs::PointCloud2>("table",10);
@@ -11,6 +11,8 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const 
   superquadrics_pub_ = node.advertise<sensor_msgs::PointCloud2>("superquadrics",10);
   filtered_cloud_pub_ = node.advertise<sensor_msgs::PointCloud2>("filtered_cloud",10);
   poses_pub_ = node.advertise<geometry_msgs::PoseArray>("poses",10);
+  cut_cloud_pub_ = node.advertise<sensor_msgs::PointCloud2>("cut_cloud", 10);
+
   this->sq_param_ = params;
   this->seg_param_ = params.seg_params;
   this->initialized = true;
@@ -79,6 +81,13 @@ void SQFitter::getSegmentedObjects(CloudPtr& cloud)
   objects_cloud_.header.seq = 1;
   objects_cloud_.header.frame_id = this->input_msg_.header.frame_id;
   objects_cloud_.header.stamp = ros::Time::now();
+
+  seg->getCutCloud(cut_cloud_);
+  pcl::toROSMsg(*cut_cloud_, cut_cloud_ros_);
+  cut_cloud_ros_.header.seq = 1;
+  cut_cloud_ros_.header.frame_id = this->input_msg_.header.frame_id;
+  cut_cloud_ros_.header.stamp = ros::Time::now();
+
 
   seg->getObjects(Objects_);
 }
@@ -154,6 +163,8 @@ void SQFitter::publishClouds()
   objects_on_table_pub_.publish(objects_on_table_cloud_);
   superquadrics_pub_.publish(sq_cloud_);
   poses_pub_.publish(poseArr_);
+  cut_cloud_pub_.publish(cut_cloud_ros_);
+
 }
 
 
