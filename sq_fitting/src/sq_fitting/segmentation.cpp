@@ -2,7 +2,7 @@
 
 Segmentation::Segmentation(const CloudPtr& input_cloud, const Parameters& param)
   : table_plane_cloud_(new PointCloud), segmented_objects_cloud_(new PointCloud),
-    objects_on_table_(new PointCloud)
+    objects_on_table_(new PointCloud), cut_objects_cloud_(new PointCloud)
 {
   cloud_ = input_cloud;
   this->objects_.resize(0);
@@ -175,12 +175,23 @@ void Segmentation::detectedObjectsToCloud()
     object_cloud->height = 1;
     object_cloud->width = object_cloud->points.size();
     object_cloud->is_dense = true;
-    objects_.push_back(object_cloud);
+
+    CloudPtr cut_cloud(new PointCloud);
+    cutCloud(object_cloud, cut_cloud);
+    objects_.push_back(cut_cloud);
+    for(std::size_t k=0;k<cut_cloud->points.size();++k)
+    {
+      cut_objects_cloud_->points.push_back(cut_cloud->points.at(k));
+    }
 
   }
   segmented_objects_cloud_->height = 1;
   segmented_objects_cloud_->width = segmented_objects_cloud_->points.size();
   segmented_objects_cloud_->is_dense = true;
+
+  cut_objects_cloud_->height = 1;
+  cut_objects_cloud_->width = cut_objects_cloud_->points.size();
+  cut_objects_cloud_->is_dense = true;
 }
 
 bool Segmentation::segment()
@@ -211,4 +222,9 @@ void Segmentation::getObjectsOnTable(CloudPtr &objects_on_table)
 void Segmentation::getObjects(std::vector<CloudPtr> &objects)
 {
   objects = objects_;
+}
+
+void Segmentation::getCutCloud(CloudPtr &cutcloud)
+{
+  cutcloud = cut_objects_cloud_ ;
 }

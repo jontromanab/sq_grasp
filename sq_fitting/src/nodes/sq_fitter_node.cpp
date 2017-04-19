@@ -2,6 +2,7 @@
 #include<sq_fitting/sq_fitter.h>
 
 const std::string CLOUD_TOPIC = "input_cloud";
+//const std::string output_frame = "\world";
 const double ZMAX = 0;
 const double ZMIN = 0;
 static const int TH_POINTS = 400;
@@ -30,8 +31,9 @@ int main(int argc, char **argv)
   ros::NodeHandle nh_("~");
 
   SQFitter::Parameters params;
-  std::string cloud_topic;
+  std::string cloud_topic, output_frame;
   nh_.getParam("cloud_topic", cloud_topic);
+  nh_.getParam("output_frame", output_frame);
   nh_.getParam("workspace", params.ws_limits);
   nh_.param("remove_nan", params.remove_nan, REMOVE_NAN);
   nh_.param("zmin", params.seg_params.zmin, ZMIN);
@@ -52,10 +54,11 @@ int main(int argc, char **argv)
 
 
 
-  SQFitter sqfit(nh_, cloud_topic, params);
+  SQFitter sqfit(nh_, cloud_topic, output_frame,params);
   std::cout<< "-----Segmentation Parameters------\n";
   std::cout<<" Input \n";
   std::cout<<" cloud_topic: "<<cloud_topic<<"\n";
+  std::cout<<"output_frame: "<<output_frame<<"\n";
   std::cout<<" zmin: "<<params.seg_params.zmin<<"\n";
   std::cout<<" zmax: "<<params.seg_params.zmax<<"\n";
   std::cout<<" th points: "<<params.seg_params.th_points<<"\n";

@@ -5,6 +5,15 @@
 #include<pcl/point_types.h>
 #include<pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
+#include <pcl/common/transforms.h>
+#include <pcl/features/moment_of_inertia_estimation.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/median_filter.h>
+#include <pcl/filters/fast_bilateral.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/surface/mls.h>
+
 
 typedef pcl::PointXYZRGB PointT;
 
@@ -35,6 +44,7 @@ void getParamFromPose(const geometry_msgs::Pose& pose, double& tx, double& ty, d
 
 void Quaternion2Euler(const geometry_msgs::Pose& pose, double& ax, double& ay, double& az);
 
+void cutCloud(const pcl::PointCloud<PointT>::Ptr& input_cloud, pcl::PointCloud<PointT>::Ptr& output_cloud);
 
 
 #endif // UTILS_H
