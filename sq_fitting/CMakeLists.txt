@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   pcl_ros
   pcl_conversions
+  eigen_conversions
 )
 
 
@@ -17,10 +18,13 @@ find_package(PCL 1.8 REQUIRED)
 
 
 
+
+
 ## Generate messages in the 'msg' folder
 add_message_files(
    FILES
    sq.msg
+   sqArray.msg
  )
 
 
@@ -51,7 +55,7 @@ IF (PCL_FOUND)
   ADD_DEFINITIONS(${PCL_DEFINITIONS})
 ENDIF (PCL_FOUND)
 
-include_directories(include ${catkin_INCLUDE_DIRS}  ${PCL_INCLUDE_DIR} ${CERES_INCLUDES})
+include_directories(include ${catkin_INCLUDE_DIRS}  ${PCL_INCLUDE_DIR} )
 
 ###########
 ## Build ##
@@ -73,7 +77,7 @@ add_library(sq_fitter  src/sq_fitting/sq_fitter.cpp)
 target_link_libraries(sampling utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(fitting utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(utils  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS} )
-target_link_libraries(segmentation  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
+target_link_libraries(segmentation  utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(sq_fitter segmentation fitting utils sampling ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 
 
@@ -85,7 +89,7 @@ install(TARGETS sampling fitting segmentation utils sq_fitter
 #Executables for nodes
 add_executable(sq_fitter_node src/nodes/sq_fitter_node.cpp)
 add_dependencies(sq_fitter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(sq_fitter_node sq_fitter  ${catkin_LIBRARIES})
+target_link_libraries(sq_fitter_node sq_fitter   ${catkin_LIBRARIES})
 
 
 

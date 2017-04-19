@@ -15,6 +15,8 @@
 #include<pcl/segmentation/supervoxel_clustering.h>
 #include<pcl/segmentation/lccp_segmentation.h>
 
+#include<sq_fitting/utils.h>
+
 typedef pcl::PointXYZRGB PointT;
 typedef pcl::PointCloud<PointT> PointCloud;
 typedef PointCloud::Ptr CloudPtr;
@@ -52,6 +54,7 @@ public:
   void getTablecloud(CloudPtr &table_cloud);
   void getObjectsCloud(CloudPtr &object_cloud);
   void getObjectsOnTable(CloudPtr &objects_on_table);
+  void getCutCloud(CloudPtr &cutcloud);
   void getObjects(std::vector<CloudPtr>& objects);
 
 private:
@@ -62,10 +65,13 @@ private:
 
 
 
+
   CloudPtr cloud_;
   CloudPtr table_plane_cloud_;
   CloudPtr segmented_objects_cloud_;
   CloudPtr objects_on_table_;
+  CloudPtr cut_objects_cloud_;
+
   PointCloud convexHull;
   pcl::ModelCoefficients plane_coefficients_;
   pcl::PointCloud<pcl::PointXYZL>::Ptr lccp_labeled_cloud;

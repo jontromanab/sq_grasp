@@ -14,20 +14,6 @@ void sq_clampParameters(double& e1_clamped, double& e2_clamped)
     e2_clamped = 1.9;
 }
 
-void sq_create_transform(const geometry_msgs::Pose& pose, Eigen::Affine3f& transform)
-{
-  transform = Eigen::Affine3f::Identity();
-  Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-  q.normalize();
-  transform.translation()<<pose.position.x, pose.position.y, pose.position.z;
-  transform.rotate(q);
-}
-
-double sq_normPoint(const PointT &point)
-{
-  double value = sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
-  return value;
-}
 
 double sq_function(const PointT& point, const sq_fitting::sq &param)
 {
@@ -88,6 +74,22 @@ double sq_error(const pcl::PointCloud<PointT>::Ptr cloud, const sq_fitting::sq &
   return error;
 }
 
+void sq_create_transform(const geometry_msgs::Pose& pose, Eigen::Affine3f& transform)
+{
+  transform = Eigen::Affine3f::Identity();
+  Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+  q.normalize();
+  transform.translation()<<pose.position.x, pose.position.y, pose.position.z;
+  transform.rotate(q);
+}
+
+double sq_normPoint(const PointT &point)
+{
+  double value = sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
+  return value;
+}
+
+
 void euler2Quaternion(const double roll, const double pitch, const double yaw, Eigen::Quaterniond &q)
 {
   Eigen::AngleAxisd rollAngle(roll, Eigen::Vector3d::UnitX());
@@ -137,6 +139,94 @@ void Quaternion2Euler(const geometry_msgs::Pose &pose, double &ax, double &ay, d
   euler[0] = ax;
   euler[1] = ay;
   euler[2] = az;
+
+}
+
+
+void cutCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, pcl::PointCloud<PointT>::Ptr &output_cloud)
+{
+  //run through a statistical outlier removel
+  pcl::PointCloud<PointT>::Ptr cloud_stat_filtered(new pcl::PointCloud<PointT>);
+  pcl::PointCloud<PointT>::Ptr cloud_voxel_filtered(new pcl::PointCloud<PointT>);
+  pcl::PointCloud<PointT>::Ptr cloud_median_filtered(new pcl::PointCloud<PointT>);
+  pcl::PointCloud<PointT>::Ptr cloud_bilateral_filtered(new pcl::PointCloud<PointT>);
+  pcl::PointCloud<PointT>::Ptr mls_filtered(new pcl::PointCloud<PointT>);
+
+  /*pcl::StatisticalOutlierRemoval<PointT> sor;
+  sor.setInputCloud (input_cloud);
+  sor.setMeanK (10);
+  sor.setStddevMulThresh (0.8);
+  sor.filter (*cloud_stat_filtered);
+
+  pcl::VoxelGrid<PointT> voxel;
+  voxel.setInputCloud (cloud_stat_filtered);
+  voxel.setLeafSize (0.01f, 0.01f, 0.01f);
+  voxel.filter (*cloud_voxel_filtered);
+
+  pcl::MedianFilter<PointT> median;
+  median.setInputCloud(input_cloud);
+  median.setMaxAllowedMovement(0.1);
+  median.setWindowSize(1);
+  median.applyFilter(*cloud_median_filtered);*/
+
+  pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
+  pcl::PointCloud<pcl::PointNormal> mls_points;
+  pcl::MovingLeastSquares<PointT, pcl::PointNormal> mls;
+  mls.setComputeNormals (true);
+  mls.setInputCloud (input_cloud);
+  mls.setPolynomialFit (true);
+  mls.setSearchMethod (tree);
+  mls.setSearchRadius (0.03);
+  mls.process (mls_points);
+  pcl::copyPointCloud (mls_points, *mls_filtered);
+
+
+
+  pcl::MomentOfInertiaEstimation<PointT> feature_extractor;
+  feature_extractor.setInputCloud (mls_filtered);
+  feature_extractor.compute ();
+  PointT  min_point_OBB;
+  PointT  max_point_OBB;
+  PointT position_OBB;
+  Eigen::Matrix3f rotational_matrix_OBB;
+  feature_extractor.getOBB (min_point_OBB, max_point_OBB, position_OBB, rotational_matrix_OBB);
+
+
+  Eigen::Affine3f transform_1 = Eigen::Affine3f::Identity();
+  transform_1.translation() << -position_OBB.x, -position_OBB.y, -position_OBB.z;
+  pcl::PointCloud<PointT>::Ptr cloud_1(new pcl::PointCloud<PointT>());
+  pcl::transformPointCloud (*mls_filtered, *cloud_1, transform_1);
+
+  Eigen::Matrix4f transform_2 = Eigen::Matrix4f::Identity();
+  transform_2.block<3,3>(0,0) = rotational_matrix_OBB.inverse();
+  pcl::PointCloud<PointT>::Ptr cloud_2(new pcl::PointCloud<PointT>());
+  pcl::transformPointCloud (*cloud_1, *cloud_2, transform_2);
+
+
+  float theta = M_PI;
+  Eigen::Affine3f transform_3 = Eigen::Affine3f::Identity();
+  transform_3.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
+  pcl::PointCloud<PointT>::Ptr cloud_3(new pcl::PointCloud<PointT>());
+  pcl::transformPointCloud (*cloud_2, *cloud_3, transform_3);
+
+  pcl::PointCloud<PointT>::Ptr cloud_4(new pcl::PointCloud<PointT>());
+  for(size_t i=0;i<cloud_2->points.size();++i)
+  {
+    cloud_4->points.push_back(cloud_2->points.at(i));
+    cloud_4->points.push_back(cloud_3->points.at(i));
+  }
+
+  Eigen::Matrix4f transform_4 = Eigen::Matrix4f::Identity();
+  transform_4(0,3) = position_OBB.x;
+  transform_4(1,3) = position_OBB.y ;
+  transform_4(2,3) = position_OBB.z ;
+  transform_4.block<3,3>(0,0) = rotational_matrix_OBB;
+
+ pcl::transformPointCloud (*cloud_4, *output_cloud, transform_4);
+
+
+
+
 
 }
 
