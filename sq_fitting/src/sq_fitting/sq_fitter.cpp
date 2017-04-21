@@ -46,12 +46,7 @@ void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs:
     pose_out = pose_in;
   }
   else{
-  /*geometry_msgs::PoseStamped poseSt_in;
-  poseSt_in.pose = pose_in;
-  poseSt_in.header.frame_id = this->input_msg_.header.frame_id;
-  poseSt_in.header.stamp = ros::Time::now();
-  //pose_out = pose_in;
-  geometry_msgs::PoseStamped poseSt_out;*/
+
   tf::TransformListener listener;
   tf::StampedTransform transform;
   try{
@@ -95,7 +90,7 @@ void SQFitter::filterCloud(const CloudPtr& cloud, CloudPtr& filtered_cloud)
     {
       if(cloud->points[i].y > sq_param_.ws_limits[2] && cloud->points[i].y < sq_param_.ws_limits[3])
       {
-        if(cloud->points[i].z > sq_param_.ws_limits[4] && cloud->points[i].x < sq_param_.ws_limits[5])
+        if(cloud->points[i].z > sq_param_.ws_limits[4] && cloud->points[i].z < sq_param_.ws_limits[5])
         {
           cloud_nan->points.push_back(cloud_->points[i]);
         }
