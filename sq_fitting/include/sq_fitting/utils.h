@@ -1,6 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
-#include<sq_fitting/sq.h>
+
 #include<pcl/point_cloud.h>
 #include<pcl/point_types.h>
 #include<pcl_conversions/pcl_conversions.h>
@@ -13,6 +13,7 @@
 #include <pcl/filters/fast_bilateral.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/surface/mls.h>
+#include "sq_fitting/sq.h"
 
 
 typedef pcl::PointXYZRGB PointT;

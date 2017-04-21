@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pcl_conversions
   eigen_conversions
+
 )
 
 
@@ -32,7 +33,8 @@ add_message_files(
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
-   std_msgs  geometry_msgs # Or other packages containing msgs
+   std_msgs
+   geometry_msgs
  )
 
 
@@ -45,7 +47,7 @@ catkin_package(
       utils
       segmentation
       sq_fitter
-  CATKIN_DEPENDS roscpp
+  CATKIN_DEPENDS roscpp message_runtime
   DEPENDS system_lib
 )
 
@@ -68,15 +70,15 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_library(utils  src/sq_fitting/utils.cpp)
 add_library(sampling  src/sq_fitting/sampling.cpp)
 add_library(fitting  src/sq_fitting/fitting.cpp)
-add_library(utils  src/sq_fitting/utils.cpp)
 add_library(segmentation  src/sq_fitting/segmentation.cpp)
 add_library(sq_fitter  src/sq_fitting/sq_fitter.cpp)
 
+target_link_libraries(utils  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS} )
 target_link_libraries(sampling utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(fitting utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
-target_link_libraries(utils  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS} )
 target_link_libraries(segmentation  utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(sq_fitter segmentation fitting utils sampling ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 
