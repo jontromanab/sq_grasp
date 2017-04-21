@@ -23,9 +23,11 @@ private:
   ros::Subscriber sq_sub_;
   ros::ServiceServer service_;
 
-  bool has_sq_;
+
   grasp_execution::graspArr grasps_;
   sq_fitting::sqArray sqs_;
+  sq_fitting::sqArray new_sqs_;
+  ros::NodeHandle nh_;
 };
 
 

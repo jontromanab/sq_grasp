@@ -1,15 +1,15 @@
 #include<sq_grasping/sq_grasping.h>
 
 SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic)
-  :has_sq_(false)
+  :nh_(nh)
 {
 
   //Subscriber for superquadrics
-  sq_sub_ = nh.subscribe(sq_topic, 10, &SQGrasping::sqCallback, this);
+  sq_sub_ = nh_.subscribe(sq_topic, 10, &SQGrasping::sqCallback, this);
   //ROS service for grasps
-  service_ = nh.advertiseService("sq_grasps", &SQGrasping::serviceCallback, this);
-  ros::Rate rate(1);
+  service_ = nh_.advertiseService("sq_grasps", &SQGrasping::serviceCallback, this);
   sqs_.sqs.resize(0);
+  new_sqs_.sqs.resize(0);
   std::cout<<"Started finding graps in superquadrics"<<std::endl;
 }
 
@@ -30,7 +30,7 @@ void SQGrasping::runNode()
   }
 }
 
-void createGrasps(const sq_fitting::sqArray sqs , grasp_execution::graspArr& gs)
+void createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::graspArr& gs)
 {
   for(int i=0;i<sqs.sqs.size();++i)
   {
@@ -51,37 +51,29 @@ void createGrasps(const sq_fitting::sqArray sqs , grasp_execution::graspArr& gs)
   gs.header.stamp = ros::Time::now();
 }
 
-void SQGrasping::sqCallback(const sq_fitting::sqArray &msg)
+void SQGrasping::sqCallback(const sq_fitting::sqArray& msg)
 {
-  if(has_sq_)
-    return;
-
-  sqs_ = msg;
-  has_sq_ = true;
-  std::cout<<"Got "<<msg.sqs.size()<<" superquadrics\n";
+  new_sqs_ = msg;
 }
+
 
 bool SQGrasping::serviceCallback(sq_grasping::getGrasps::Request &req, sq_grasping::getGrasps::Response &res)
 {
+
+  std::cout<<"Service callback started"<<std::endl;
+  sqs_ = new_sqs_;
+  std::cout<<"Got "<<sqs_.sqs.size()<<" superquadrics\n";
   if(sqs_.sqs.size() ==0)
   {
     std::cout<<"No more superquadrics available to grasp \n";
-    has_sq_ = false;
     std::cout<<"Waiting for new superquadrics\n";
     return false;
   }
+
   //creating grasps for superquadrics
   std::cout<<"Dealing with a hand with :"<<req.num_of_fingers<<" fingers\n";
   createGrasps(sqs_, res.grasps);
-  //std::cout<<"Pose from sqs_ \n";
-  //std::cout<<sqs_.sqs[0].pose.position.x<<" "<<sqs_.sqs[0].pose.position.y<<" "<<sqs_.sqs[0].pose.position.z<<std::endl;
-  //std::cout<<"Pose from grasp \n";
- // std::cout<<res.grasps.grasps[0].pose.position.x<<" "<<res.grasps.grasps[0].pose.position.y<<" "<<res.grasps.grasps[0].pose.position.z<<std::endl;
-  std::cout<<"Fixed frame: "<<res.grasps.header.frame_id<<std::endl;
-  std::cout<<"Create response with "<<(int)res.grasps.grasps.size()<<" grasps\n";
-
-  has_sq_ = false;
-
+  std::cout<<"Created response with "<<(int)res.grasps.grasps.size()<<" grasps\n";
 
 }
 
