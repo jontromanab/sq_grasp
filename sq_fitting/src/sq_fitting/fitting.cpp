@@ -151,10 +151,6 @@ void SuperquadricFitting::fit_Param(sq_fitting::sq& param, double& final_error)
   param_lm.pose.orientation.y = q1.y();
   param_lm.pose.orientation.z = q1.z();
   param_lm.pose.orientation.w = q1.w();
-
-
-
-
   final_error = sq_error(cloud_, param_lm);
 }
 
@@ -168,17 +164,14 @@ void SuperquadricFitting::fit()
     setPreAlign(true, i);
     sq_fitting::sq param;
     fit_Param(param, error);
-    //std::cout<<"min_fit_error: "<<min_fit_error<<std::endl;
-    //std::cout<<"Error now: "<<error<<std::endl;
     if(error<min_fit_error)
     {
       min_fit_error = error;
-      //std::cout<<"selected error: "<<min_fit_error <<std::endl;
       min_param = param;
     }
   }
-  //std::cout<<"End of error loop"<<std::endl;
   params_ = min_param;
+  min_error_ = min_fit_error;
 }
 
 void SuperquadricFitting::getMinError(double& error)
