@@ -38,8 +38,8 @@ void SQFitter::cloud_callback(const sensor_msgs::PointCloud2ConstPtr &input)
 
 void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs::Pose& pose_out)
 {
-  std::cout<<"Output_frame: "<<output_frame_<<std::endl;
-  std::cout<<"Input frame: "<<this->input_msg_.header.frame_id<<std::endl;
+  //std::cout<<"Output_frame: "<<output_frame_<<std::endl;
+  //std::cout<<"Input frame: "<<this->input_msg_.header.frame_id<<std::endl;
   if(output_frame_ == this->input_msg_.header.frame_id)
   {
     std::cout<<"Ok till now"<<std::endl;
@@ -53,7 +53,7 @@ void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs:
 
     listener.waitForTransform( output_frame_,this->input_msg_.header.frame_id,ros::Time(0), ros::Duration(3.0));
     listener.lookupTransform(output_frame_, this->input_msg_.header.frame_id,ros::Time(0), transform);
-    std::cout<<"Transform: "<<transform.getOrigin().x()<<" "<<transform.getOrigin().y()<<" "<<transform.getOrigin().z()<<std::endl;
+    //std::cout<<"Transform: "<<transform.getOrigin().x()<<" "<<transform.getOrigin().y()<<" "<<transform.getOrigin().z()<<std::endl;
 
     geometry_msgs::Pose inter_pose;
     inter_pose.position.x = transform.getOrigin().x();

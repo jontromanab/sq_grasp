@@ -3,6 +3,7 @@
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/common/pca.h>
 
 SuperquadricFitting::SuperquadricFitting(const pcl::PointCloud<PointT>::Ptr& input_cloud) : pre_align_(true), pre_align_axis_(2)
 {
@@ -27,17 +28,28 @@ void SuperquadricFitting::setPreAlign(bool pre_align, int pre_align_axis)
 
 void SuperquadricFitting::preAlign(Eigen::Affine3f &transform, Eigen::Vector3f &variances)
 {
-  Eigen::Vector4f xyz_centroid;
+  /*Eigen::Vector4f xyz_centroid;
   pcl::compute3DCentroid(*cloud_, xyz_centroid);
   Eigen::Affine3f transformation_centroid = Eigen::Affine3f::Identity();
-  transformation_centroid.translation()<<-xyz_centroid(0), -xyz_centroid(1), -xyz_centroid(2);
+  transformation_centroid.translation()<<-xyz_centroid(0), -xyz_centroid(1), -xyz_centroid(2);*/
 
-  Eigen::Matrix3f cov_matrix;
-  Eigen::Vector3f eigenValues;
-  Eigen::Matrix3f eigenVectors;
+  pcl::MomentOfInertiaEstimation<PointT> feature_extractor;
+  feature_extractor.setInputCloud (cloud_);
+  feature_extractor.compute ();
+  PointT  min_point_OBB;
+  PointT  max_point_OBB;
+  PointT position_OBB;
+  Eigen::Matrix3f rotational_matrix_OBB;
+  feature_extractor.getOBB (min_point_OBB, max_point_OBB, position_OBB, rotational_matrix_OBB);
+  Eigen::Affine3f transformation_centroid = Eigen::Affine3f::Identity();
+  transformation_centroid.translation()<<-position_OBB.x, -position_OBB.y, -position_OBB.z;
 
-  pcl::computeCovarianceMatrix(*cloud_, xyz_centroid, cov_matrix);
-  pcl::eigen33(cov_matrix, eigenVectors, eigenValues);
+
+  //Compute PCA
+  pcl::PCA<PointT> pca;
+  pca.setInputCloud(cloud_);
+  Eigen::Vector3f eigenValues = pca.getEigenValues();
+  Eigen::Matrix3f eigenVectors = pca.getEigenVectors();
 
   //Aligning first PCA axis with the prealign axis
   Eigen::Vector3f vec_aux = eigenVectors.col(0);
@@ -57,60 +69,6 @@ void SuperquadricFitting::preAlign(Eigen::Affine3f &transform, Eigen::Vector3f &
       transformation_pca(j,i) = eigenVectors(i,j);
     }
   }
-
-  /*pcl::PointCloud<PointT>::Ptr cloud_stat_filtered(new pcl::PointCloud<PointT>);
-  pcl::PointCloud<PointT>::Ptr cloud_voxel_filtered(new pcl::PointCloud<PointT>);
-  pcl::StatisticalOutlierRemoval<PointT> sor;
-  sor.setInputCloud (cloud_);
-  sor.setMeanK (10);
-  sor.setStddevMulThresh (0.8);
-  sor.filter (*cloud_stat_filtered);
-
-  pcl::VoxelGrid<PointT> voxel;
-  voxel.setInputCloud (cloud_stat_filtered);
-  voxel.setLeafSize (0.01f, 0.01f, 0.01f);
-  voxel.filter (*cloud_voxel_filtered);
-
-  pcl::MomentOfInertiaEstimation<PointT> feature_extractor;
-  feature_extractor.setInputCloud (cloud_voxel_filtered);
-  feature_extractor.compute ();
-  PointT  min_point_OBB;
-  PointT  max_point_OBB;
-  PointT position_OBB;
-  Eigen::Matrix3f rotational_matrix_OBB;
-  float major_value, middle_value, minor_value;
-  Eigen::Vector3f major_vector, middle_vector, minor_vector;
-  feature_extractor.getOBB (min_point_OBB, max_point_OBB, position_OBB, rotational_matrix_OBB);
-  Eigen::Affine3f transformation_centroid = Eigen::Affine3f::Identity();
-  transformation_centroid.translation()<<-position_OBB.x, -position_OBB.y, -position_OBB.z;
-  feature_extractor.getEigenValues (major_value, middle_value, minor_value);
-  feature_extractor.getEigenVectors (major_vector, middle_vector,minor_vector);
-  Eigen::Vector3f eigenValues (major_value, middle_value, minor_value);
-  Eigen::Matrix3f eigenVectors;
-  eigenVectors.col(0) = major_vector;
-  eigenVectors.col(1) = middle_vector;
-  eigenVectors.col(2) = minor_vector;
-
-
-  //Aligning first PCA axis with the prealign axis
-  Eigen::Vector3f vec_aux = eigenVectors.col(0);
-  eigenVectors.col(0) = eigenVectors.col(pre_align_axis_);
-  eigenVectors.col(pre_align_axis_) = vec_aux;
-
-  float aux_ev = eigenValues(0);
-  eigenValues(0) = eigenValues(pre_align_axis_);
-  eigenValues(pre_align_axis_) = aux_ev;
-
-  Eigen::Matrix4f transformation_pca = Eigen::Matrix4f::Identity();
-
-  for(int i =0 ;i<transformation_pca.cols()-1;++i)
-  {
-    for(int j = 0;j<transformation_pca.rows()-1;++j)
-    {
-      transformation_pca(j,i) = eigenVectors(i,j);
-    }
-  }*/
-
 
   Eigen::Affine3f transformation_pca_affine;
   transformation_pca_affine.matrix() = transformation_pca;
@@ -158,8 +116,10 @@ void SuperquadricFitting::fit_Param(sq_fitting::sq& param, double& final_error)
 
   Eigen::Affine3d transform_lm;
   create_transformation_matrix(xvec[5], xvec[6], xvec[7], xvec[8], xvec[9], xvec[10], transform_lm);
+
   Eigen::Affine3f transform = transform_inv.inverse();
-  Eigen::Affine3d final_transform = transform.cast<double>() * transform_lm;
+  //Eigen::Affine3d final_transform =  transform.cast<double>() * transform_lm ;
+  Eigen::Affine3d final_transform = transform.cast<double>() ;
   Eigen::Vector3d t = final_transform.translation();
   param.pose.position.x = t(0);
   param.pose.position.y = t(1);
@@ -172,24 +132,53 @@ void SuperquadricFitting::fit_Param(sq_fitting::sq& param, double& final_error)
   param.pose.orientation.z = q.z();
   param.pose.orientation.w = q.w();
 
-  final_error = sq_error(cloud_, param);
+
+  //Creating a new param with pose of transform_lm to calculate error
+  sq_fitting::sq param_lm;
+  param_lm.a1 = param.a1;
+  param_lm.a2 = param.a2;
+  param_lm.a3 = param.a3;
+  param_lm.e1 = param.e1;
+  param_lm.e2 = param.e2;
+  Eigen::Vector3d t1 = transform_lm.translation();
+  param_lm.pose.position.x = t1(0);
+  param_lm.pose.position.y = t1(1);
+  param_lm.pose.position.z = t1(2);
+  Eigen::Matrix3d rot_matrix_lm = transform_lm.rotation();
+  Eigen::Quaterniond q1(rot_matrix_lm);
+  q1.normalize();
+  param_lm.pose.orientation.x = q1.x();
+  param_lm.pose.orientation.y = q1.y();
+  param_lm.pose.orientation.z = q1.z();
+  param_lm.pose.orientation.w = q1.w();
+
+
+
+
+  final_error = sq_error(cloud_, param_lm);
 }
 
 void SuperquadricFitting::fit()
 {
+  double min_fit_error = std::numeric_limits<double>::max();
+  sq_fitting::sq min_param;
   for(int i=0;i<3;++i)
   {
-    double min_fit_error = std::numeric_limits<double>::max();
-    sq_fitting::sq param;
     double error;
     setPreAlign(true, i);
+    sq_fitting::sq param;
     fit_Param(param, error);
+    //std::cout<<"min_fit_error: "<<min_fit_error<<std::endl;
+    //std::cout<<"Error now: "<<error<<std::endl;
     if(error<min_fit_error)
     {
-      min_error_ = error;
-      params_ = param;
+      min_fit_error = error;
+      //std::cout<<"selected error: "<<min_fit_error <<std::endl;
+      min_param = param;
     }
   }
+  //std::cout<<"End of error loop"<<std::endl;
+  params_ = min_param;
 }
 
 void SuperquadricFitting::getMinError(double& error)

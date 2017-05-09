@@ -145,20 +145,39 @@ void Quaternion2Euler(const geometry_msgs::Pose &pose, double &ax, double &ay, d
 
 void cutCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, pcl::PointCloud<PointT>::Ptr &output_cloud)
 {
-  //run through a statistical outlier removel
+  //run through filters
+  pcl::PointCloud<PointT>::Ptr cut_cloud_filtered(new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr cloud_stat_filtered(new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr cloud_voxel_filtered(new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr cloud_median_filtered(new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr cloud_bilateral_filtered(new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr mls_filtered(new pcl::PointCloud<PointT>);
 
-  /*pcl::StatisticalOutlierRemoval<PointT> sor;
+  pcl::StatisticalOutlierRemoval<PointT> sor;
   sor.setInputCloud (input_cloud);
-  sor.setMeanK (10);
+  sor.setMeanK (5);
   sor.setStddevMulThresh (0.8);
-  sor.filter (*cloud_stat_filtered);
+  sor.filter (* output_cloud);
 
-  pcl::VoxelGrid<PointT> voxel;
+
+  /*Eigen::Vector4f xyz_centroid;
+    pcl::compute3DCentroid(*cloud_stat_filtered, xyz_centroid);
+    for(size_t i=0;i<cloud_stat_filtered->points.size();++i)
+      {
+        if(cloud_stat_filtered->points[i].z < xyz_centroid(2)+0.02)
+        {
+              output_cloud->points.push_back(cloud_stat_filtered->points[i]);
+            }
+
+      }
+      output_cloud->height = 1;
+      output_cloud->header.frame_id = cloud_stat_filtered->header.frame_id;
+      output_cloud->width = output_cloud->points.size();
+
+       //Eigen::Affine3f transform = Eigen::Affine3f::Identity();*/
+    //pcl::transformPointCloud (*cloud_stat_filtered, *output_cloud, transform);
+
+  /*pcl::VoxelGrid<PointT> voxel;
   voxel.setInputCloud (cloud_stat_filtered);
   voxel.setLeafSize (0.01f, 0.01f, 0.01f);
   voxel.filter (*cloud_voxel_filtered);
@@ -169,21 +188,38 @@ void cutCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, pcl::PointCloud<P
   median.setWindowSize(1);
   median.applyFilter(*cloud_median_filtered);*/
 
-  pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
+  /*pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
   pcl::PointCloud<pcl::PointNormal> mls_points;
   pcl::MovingLeastSquares<PointT, pcl::PointNormal> mls;
   mls.setComputeNormals (true);
-  mls.setInputCloud (input_cloud);
+  mls.setInputCloud (cloud_stat_filtered);
   mls.setPolynomialFit (true);
   mls.setSearchMethod (tree);
   mls.setSearchRadius (0.03);
   mls.process (mls_points);
-  pcl::copyPointCloud (mls_points, *mls_filtered);
+  pcl::copyPointCloud (mls_points, *output_cloud);*/
 
 
+  /*Eigen::Vector4f xyz_centroid;
+  pcl::compute3DCentroid(*input_cloud, xyz_centroid);
+  for(size_t i=0;i<input_cloud->points.size();++i)
+    {
+      if(input_cloud->points[i].z < xyz_centroid(2))
+      {
+            cut_cloud_filtered->points.push_back(input_cloud->points[i]);
+          }
 
-  pcl::MomentOfInertiaEstimation<PointT> feature_extractor;
-  feature_extractor.setInputCloud (mls_filtered);
+    }
+    cut_cloud_filtered->height = 1;
+    cut_cloud_filtered->header.frame_id = input_cloud->header.frame_id;
+    cut_cloud_filtered->width = cut_cloud_filtered->points.size();
+
+     Eigen::Affine3f transform = Eigen::Affine3f::Identity();*/
+  //pcl::transformPointCloud (*cloud_stat_filtered, *output_cloud, transform);
+
+
+  /*pcl::MomentOfInertiaEstimation<PointT> feature_extractor;
+  feature_extractor.setInputCloud (cut_cloud_filtered);
   feature_extractor.compute ();
   PointT  min_point_OBB;
   PointT  max_point_OBB;
@@ -195,7 +231,7 @@ void cutCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, pcl::PointCloud<P
   Eigen::Affine3f transform_1 = Eigen::Affine3f::Identity();
   transform_1.translation() << -position_OBB.x, -position_OBB.y, -position_OBB.z;
   pcl::PointCloud<PointT>::Ptr cloud_1(new pcl::PointCloud<PointT>());
-  pcl::transformPointCloud (*mls_filtered, *cloud_1, transform_1);
+  pcl::transformPointCloud (*cut_cloud_filtered, *cloud_1, transform_1);
 
   Eigen::Matrix4f transform_2 = Eigen::Matrix4f::Identity();
   transform_2.block<3,3>(0,0) = rotational_matrix_OBB.inverse();
@@ -222,7 +258,7 @@ void cutCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, pcl::PointCloud<P
   transform_4(2,3) = position_OBB.z ;
   transform_4.block<3,3>(0,0) = rotational_matrix_OBB;
 
- pcl::transformPointCloud (*cloud_4, *output_cloud, transform_4);
+ pcl::transformPointCloud (*cloud_4, *output_cloud, transform_4);*/
 
 
 

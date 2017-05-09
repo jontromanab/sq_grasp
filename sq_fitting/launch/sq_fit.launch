@@ -26,7 +26,7 @@
       <param name="min_segment_size" value="3" />
 
 
-      <rosparam param = "workspace"> [-0.5, 0.27, 0.1, 0.7, 0.1, 1.2 ]</rosparam>
+      <rosparam param = "workspace"> [-0.35, 0.03,  -0.2, 0.2, 0.5, 1.1 ]</rosparam>
       <!--rosparam param = "workspace"> [-0.5, 2, -0.2, 0.1, -2, 0.1]</rosparam-->
 
       <param name="remove_nan" value="true" />
