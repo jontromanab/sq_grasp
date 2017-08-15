@@ -197,7 +197,6 @@ void getTransformPose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pos
 {
 
   // Compute z height as maximum distance from planes
-
   double val_z = cloud_in->points.at(0).z;
   double  z_max = val_z, z_min = val_z;
   for(int i=0;i<cloud_in->points.size();++i)
@@ -208,12 +207,7 @@ void getTransformPose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pos
       z_min = cloud_in->points.at(i).z;
   }
 
-
-
   double height = z_max -z_min;
-
-
-
   double min_volume = std::numeric_limits<double>::max();
   Eigen::Matrix3f transformation;
   // Find the convex hull
@@ -283,6 +277,106 @@ void getTransformPose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pos
       //dimensions->z = height;
 
       Eigen::Vector3f pose3f((x_max + x_min) / 2.0, (y_max + y_min) / 2.0, projected_cloud[0].z + height / 2.0);
+      pose3f = transformation * pose3f;
+      pose.position.x = pose3f(0);
+      pose.position.y = pose3f(1);
+      pose.position.z = pose3f(2);
+      Eigen::Quaternionf q(transformation);
+      pose.orientation.x = q.x();
+      pose.orientation.y = q.y();
+      pose.orientation.z = q.z();
+      pose.orientation.w = q.w();
+      min_volume = area * height;
+    }
+   }
+}
+
+
+
+void getCompletePose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pose &pose)
+{
+
+  // Compute y height as maximum distance from planes
+  double val_x = cloud_in->points.at(0).x;
+  double  x_max = val_x, x_min = val_x;
+  for(int i=0;i<cloud_in->points.size();++i)
+  {
+    if (cloud_in->points.at(i).x>=x_max)
+      x_max = cloud_in->points.at(i).x;
+    if (cloud_in->points.at(i).x<=x_min)
+      x_min = cloud_in->points.at(i).x;
+  }
+
+  double height = x_max -x_min;
+  double min_volume = std::numeric_limits<double>::max();
+  Eigen::Matrix3f transformation;
+  // Find the convex hull
+  pcl::PointCloud<pcl::PointXYZRGB> hull;
+  pcl::ConvexHull<pcl::PointXYZRGB> convex_hull;
+  convex_hull.setInputCloud(cloud_in);
+  convex_hull.setDimension(2);
+  convex_hull.reconstruct(hull);
+
+  // Try fitting a rectangle
+  for (size_t i = 0; i < hull.size() - 1; ++i) {
+  // For each pair of hull points, determine the angle
+    double rise = hull[i + 1].y - hull[i].y;
+    double run = hull[i + 1].z - hull[i].z;
+    // and normalize..
+    {
+      double l = sqrt((rise * rise) + (run * run));
+      rise = rise / l;
+      run = run / l;
+     }
+
+    // Build rotation matrix from change of basis
+    Eigen::Matrix3f rotation;
+    rotation(0, 0) = run;
+    rotation(0, 1) = rise;
+    rotation(0, 2) = 0.0;
+    rotation(1, 0) = -rise;
+    rotation(1, 1) = run;
+    rotation(1, 2) = 0.0;
+    rotation(2, 0) = 0.0;
+    rotation(2, 1) = 0.0;
+    rotation(2, 2) = 1.0;
+    Eigen::Matrix3f inv_rotation = rotation.inverse();
+
+    // Project hull to new coordinate system
+    pcl::PointCloud<pcl::PointXYZRGB> projected_cloud;
+    for (size_t j = 0; j < hull.size(); ++j)
+    {
+        pcl::PointXYZRGB p;
+        p.getVector3fMap() = rotation * hull[j].getVector3fMap();
+        projected_cloud.push_back(p);
+    }
+
+    // Compute min/max
+    double y_min = std::numeric_limits<double>::max();
+    double y_max = std::numeric_limits<double>::min();
+    double z_min = std::numeric_limits<double>::max();
+    double z_max = std::numeric_limits<double>::min();
+    for (size_t j = 0; j < projected_cloud.size(); ++j)
+    {
+       if (projected_cloud[j].y < y_min) y_min = projected_cloud[j].y;
+       if (projected_cloud[j].y > y_max) y_max = projected_cloud[j].y;
+
+       if (projected_cloud[j].z < z_min) z_min = projected_cloud[j].z;
+       if (projected_cloud[j].z > z_max) z_max = projected_cloud[j].z;
+    }
+
+
+    // Is this the best estimate?
+    double area = (y_max - y_min) * (z_max - z_min);
+    if (area * height < min_volume)
+    {
+      //transformation = inv_plane_rotation * inv_rotation;
+      transformation = inv_rotation;
+      //dimensions->x = (x_max - x_min);
+     // dimensions->y = (y_max - y_min);
+      //dimensions->z = height;
+
+      Eigen::Vector3f pose3f(projected_cloud[0].x + height / 2.0,(y_max + y_min) / 2.0, (z_max + z_min) / 2.0);
       pose3f = transformation * pose3f;
       pose.position.x = pose3f(0);
       pose.position.y = pose3f(1);

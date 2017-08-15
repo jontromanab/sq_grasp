@@ -55,6 +55,8 @@ void getCenter(pcl::PointCloud<PointT>::Ptr& cloud_in, double& x, double& y, dou
 
 void getTransformPose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pose& pose);
 
+void getCompletePose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pose &pose);
+
 
 
 #endif // UTILS_H
