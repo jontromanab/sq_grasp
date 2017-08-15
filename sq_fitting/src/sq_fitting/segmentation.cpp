@@ -176,22 +176,22 @@ void Segmentation::detectedObjectsToCloud()
     object_cloud->width = object_cloud->points.size();
     object_cloud->is_dense = true;
 
-    CloudPtr cut_cloud(new PointCloud);
-    cutCloud(object_cloud, cut_cloud);
-    objects_.push_back(cut_cloud);
-    for(std::size_t k=0;k<cut_cloud->points.size();++k)
-    {
-      cut_objects_cloud_->points.push_back(cut_cloud->points.at(k));
-    }
+//    CloudPtr cut_cloud(new PointCloud);
+//    cutCloud(object_cloud, cut_cloud);
+//    objects_.push_back(cut_cloud);
+//    for(std::size_t k=0;k<cut_cloud->points.size();++k)
+//    {
+//      cut_objects_cloud_->points.push_back(cut_cloud->points.at(k));
+//    }
 
   }
   segmented_objects_cloud_->height = 1;
   segmented_objects_cloud_->width = segmented_objects_cloud_->points.size();
   segmented_objects_cloud_->is_dense = true;
 
-  cut_objects_cloud_->height = 1;
-  cut_objects_cloud_->width = cut_objects_cloud_->points.size();
-  cut_objects_cloud_->is_dense = true;
+//  cut_objects_cloud_->height = 1;
+//  cut_objects_cloud_->width = cut_objects_cloud_->points.size();
+//  cut_objects_cloud_->is_dense = true;
 }
 
 bool Segmentation::segment()

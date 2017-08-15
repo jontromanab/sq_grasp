@@ -49,7 +49,7 @@ void getParamFromPose(const Eigen::Affine3d &trans, double &tx, double &ty, doub
 
 void Quaternion2Euler(const geometry_msgs::Pose& pose, double& ax, double& ay, double& az);
 
-void cutCloud(const pcl::PointCloud<PointT>::Ptr& input_cloud, pcl::PointCloud<PointT>::Ptr& output_cloud);
+//void cutCloud(const pcl::PointCloud<PointT>::Ptr& input_cloud, pcl::PointCloud<PointT>::Ptr& output_cloud);
 
 void getCenter(pcl::PointCloud<PointT>::Ptr& cloud_in, double& x, double& y, double& z);
 

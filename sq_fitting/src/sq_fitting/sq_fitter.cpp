@@ -196,7 +196,7 @@ void SQFitter::filter_RadiusOutlier(CloudPtr &cloud_in, CloudPtr &cloud_out)
   outrem.filter (*cloud_out);
 }
 
-void getCenter(CloudPtr &cloud_in, double& x, double& y, double& z)
+/*void getCenter(CloudPtr &cloud_in, double& x, double& y, double& z)
 {
   double val_x = cloud_in->points.at(0).x;
   double val_y = cloud_in->points.at(0).y;
@@ -221,7 +221,7 @@ void getCenter(CloudPtr &cloud_in, double& x, double& y, double& z)
   y = (y_max+y_min)/2;
   z = (z_max+z_min)/2;
 
-}
+}*/
 
 void SQFitter::mirror_cloud(CloudPtr &cloud_in, CloudPtr &cloud_out)
 {
