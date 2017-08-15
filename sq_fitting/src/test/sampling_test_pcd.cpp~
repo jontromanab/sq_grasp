@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   std::cout<<"size of the second sampled cloud: "<<cloud2->points.size()<<std::endl;
 
 
-  *cloud_combined = *cloud2;
+  *cloud_combined = *cloud;
   //*cloud_combined+= *cloud2;
 
   std::cout<<"Size of combined superquadrics cloud: "<<cloud_combined->points.size()<<std::endl;

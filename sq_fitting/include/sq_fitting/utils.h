@@ -15,6 +15,8 @@
 #include <pcl/surface/mls.h>
 #include "sq_fitting/sq.h"
 
+#include <pcl/surface/convex_hull.h>
+
 
 typedef pcl::PointXYZRGB PointT;
 
@@ -43,9 +45,16 @@ void create_rotation_matrix(const double ax, const double ay, const double az, E
 
 void getParamFromPose(const geometry_msgs::Pose& pose, double& tx, double& ty, double& tz, double& ax, double& ay, double& az );
 
+void getParamFromPose(const Eigen::Affine3d &trans, double &tx, double &ty, double &tz, double &ax, double &ay, double &az);
+
 void Quaternion2Euler(const geometry_msgs::Pose& pose, double& ax, double& ay, double& az);
 
 void cutCloud(const pcl::PointCloud<PointT>::Ptr& input_cloud, pcl::PointCloud<PointT>::Ptr& output_cloud);
+
+void getCenter(pcl::PointCloud<PointT>::Ptr& cloud_in, double& x, double& y, double& z);
+
+void getTransformPose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pose& pose);
+
 
 
 #endif // UTILS_H

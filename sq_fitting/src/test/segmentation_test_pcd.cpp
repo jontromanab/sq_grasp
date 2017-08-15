@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
   std::cout<<"Detected objects: "<<objects.size()<<std::endl;
 
 
+
+
   pcl::io::savePCDFileASCII ("segmented_objects.pcd", *object_cloud);
   std::cerr << "Saved " << object_cloud->points.size () << " data points to segmented_objects.pcd." << std::endl;
   return 0;

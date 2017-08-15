@@ -3,12 +3,12 @@
    <!--Now apply segementation to remove table plane and generate clustered objects -->
   <node name ="super" pkg="sq_fitting" type="sq_fitter_node" output="screen">
       <param name="cloud_topic" value="/kinect2/sd/points" />
-      <!--param name="cloud_topic" value="/camera/depth_registered/points" /-->
+      <!--param name="cloud_topic" value="/head_mount_kinect/depth_registered/points" /-->
       <param name="output_frame" value = "/world" />
 
 
       <param name="zmax" value="2.0" />
-      <param name="zmin" value="0.02" />
+      <param name="zmin" value="0.005" />
       <param name= "th_points" value="60" />
 
       <!--Supervoxel parameters -->
@@ -26,8 +26,15 @@
       <param name="min_segment_size" value="3" />
 
 
-      <rosparam param = "workspace"> [-0.35, 0.03,  -0.2, 0.2, 0.5, 1.1 ]</rosparam>
-      <!--rosparam param = "workspace"> [-0.5, 2, -0.2, 0.1, -2, 0.1]</rosparam-->
+      <!--rosparam param = "workspace"> [-0.3, 0.19,  -1, 0.25, 0.5, 2 ]</rosparam-->
+
+
+       <!-- for in world frame -->
+      <rosparam param = "workspace"> [-1, 0,  -0.5, 0.3, 0, 0.5 ]</rosparam>
+
+      <!-- for PR2 kinect -->
+      <!--rosparam param = "workspace"> [0.5, 1.2,  -0.3, 0.4, 0.2, 2 ]</rosparam-->
+
 
       <param name="remove_nan" value="true" />
 

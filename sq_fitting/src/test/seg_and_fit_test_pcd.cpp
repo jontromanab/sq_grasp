@@ -22,7 +22,24 @@ int main(int argc, char *argv[])
      return (-1);
 
   std::cout<<"size of input cloud: "<<cloud->size()<<std::endl;
-  Segmentation::Parameters params;
+
+
+  SuperquadricFitting* sq_fit = new SuperquadricFitting(cloud);
+  sq_fitting::sq min_param;
+  double min_fit;
+  sq_fit->fit();
+  sq_fit->getMinParams(min_param);
+  sq_fit->getMinError(min_fit);
+
+ // std::cout<<"Minimum error["<<i<<"] is : "<<min_fit<<std::endl;
+  std::cout<<"Minimum parameters is: "<<"a1:"<<min_param.a1<<"  a2:"
+          <<min_param.a2<<" a3:"<<min_param.a3<<" e1:"<<min_param.e1<<" e2:"<<min_param.e2<<" position:"
+          <<min_param.pose.position.x<<" "<<min_param.pose.position.y<<min_param.pose.position.z<<" orientation:"
+          <<min_param.pose.orientation.x<<" "<<min_param.pose.orientation.y<<" "<<min_param.pose.orientation.z<<" "
+          <<min_param.pose.orientation.w<<std::endl;
+
+
+  /*Segmentation::Parameters params;
   params.zmin = 0.03;
   params.zmax = 2.0;
   params.th_points = 50;
@@ -93,6 +110,6 @@ int main(int argc, char *argv[])
 
 
   pcl::io::savePCDFileASCII ("objects_superquadrics.pcd", *sq_cloud);
-  std::cerr << "Saved " << sq_cloud->points.size () << " data points to objects_superquadrics.pcd." << std::endl;
+  std::cerr << "Saved " << sq_cloud->points.size () << " data points to objects_superquadrics.pcd." << std::endl;*/
   return 0;
 }

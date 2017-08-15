@@ -9,6 +9,8 @@
 #include <pcl/filters/filter.h>
 #include <geometry_msgs/PoseArray.h>
 
+#include<visualization_msgs/Marker.h>
+
 class SQFitter
 {
 public:
@@ -26,12 +28,25 @@ public:
 private:
   void cloud_callback(const sensor_msgs::PointCloud2ConstPtr& input);
   void filterCloud(const CloudPtr& cloud, CloudPtr& filtered_cloud);
+  //void filterCloud2(const CloudPtr& cloud, CloudPtr& filtered_cloud);
   void getSegmentedObjects(CloudPtr& cloud);
+  void getSegmentedObjectsIRI(CloudPtr& cloud);
   void getSuperquadricParameters(std::vector<sq_fitting::sq>& params);
   void sampleSuperquadrics(const std::vector<sq_fitting::sq>& params);
   void publishClouds();
   void transformFrame(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
+  void transformFrameCloud(const CloudPtr& cloud_in, CloudPtr& cloud_out);
+  void transformFrameCloudBack(const CloudPtr& cloud_in, CloudPtr& cloud_out);
 
+  void filter_StatOutlier(CloudPtr& cloud_in, CloudPtr& cloud_out);
+  void filter_RadiusOutlier(CloudPtr& cloud_in, CloudPtr& cloud_out);
+
+  void mirror_cloud(CloudPtr& cloud_in, CloudPtr& cloud_out);
+  void createCenterMarker(const double x, const double y, const double z);
+
+
+  ros::ServiceClient client_;
+  ros::ServiceClient client_param;
 
 
   sensor_msgs::PointCloud2 table_cloud_;
@@ -41,8 +56,10 @@ private:
   sensor_msgs::PointCloud2 filtered_cloud_ros_;
   sensor_msgs::PointCloud2 input_msg_;
   sensor_msgs::PointCloud2 cut_cloud_ros_;
+  sensor_msgs::PointCloud2 transformed_cloud_ros_;
 
   CloudPtr cloud_;
+  CloudPtr transformed_cloud_;
   CloudPtr filtered_cloud_;
   CloudPtr table_plane_cloud_;
   CloudPtr segmented_objects_cloud_;
@@ -65,6 +82,10 @@ private:
   ros::Publisher poses_pub_;
   ros::Publisher cut_cloud_pub_;
   ros::Publisher sqs_pub_;
+  ros::Publisher center_pub_;
+  ros::Publisher transformed_pub_;
+
+  visualization_msgs::Marker centerPoint_;
 
 
   SQFitter::Parameters sq_param_;

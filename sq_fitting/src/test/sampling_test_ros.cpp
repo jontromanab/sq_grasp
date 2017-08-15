@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include<sq_fitting/sampling.h>
 #include<sq_fitting/sq.h>
+#include<geometry_msgs/PoseArray.h>
 
 int main(int argc, char **argv)
 {
@@ -9,50 +10,40 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   ros::Publisher pub = nh.advertise<sensor_msgs::PointCloud2> ("superquadrics", 1);
   ros::Publisher pub2 = nh.advertise<sensor_msgs::PointCloud2> ("superquadrics2", 1);
-
-  sq_fitting::sq super;
-  //coke can 0.0276175,0.0342516,0.0561649,0.389707,1.0314
-  /*super.a1 = 0.02;
-  super.a2 = 0.07;
-  super.a3 = 0.05;
-  super.e1 = 0.1;
-  super.e2 = 0.1;*/
-  super.a1 = 0.0276175;
-  super.a2 = 0.0342516;
-  super.a3 = 0.0561649;
-  super.e1 = 0.389707;
-  super.e2 = 1.0314;
-  geometry_msgs::Pose pose;
-  pose.position.x = 1.0;
-  pose.position.y = 0.0;
-  pose.position.z = 1.0;
-  pose.orientation.w = 1.0;
-  super.pose = pose;
+  ros::Publisher pub3 = nh.advertise<sensor_msgs::PointCloud2> ("superquadrics3", 1);
+  ros::Publisher pub4 = nh.advertise<geometry_msgs::PoseArray>("poses",1);
 
 
-  sq_fitting::sq super2;
-  //box 0.0439586,0.0519484,0.0480955,0.602776,0.60603
-  //Sphere
-  /*super2.a1 = 0.05;
-  super2.a2 = 0.05;
-  super2.a3 = 0.05;
-  super2.e1 = 1.00333;
-  super2.e2 = 0.952999;*/
-  super2.a1 = 0.0439586;
-  super2.a2 = 0.0519484;
-  super2.a3 = 0.0180955;
-  super2.e1 = 0.2;
-  super2.e2 = 0.2;
-  geometry_msgs::Pose pose2;
-  pose2.position.x = 1.0;
-  pose2.position.y = 0.25;
-  pose2.position.z = 1.0;
-  pose2.orientation.w = 1.0;
-  super2.pose = pose2;
+  sq_fitting::sq super3;
+  super3.a1 = 0.01;
+  super3.a2 = 0.08;
+  super3.a3 = 0.05;
+  super3.e1 = 0.1;
+  super3.e2 = 0.1;
+  geometry_msgs::Pose pose3;
+  pose3.position.x = 0.612908;
+  pose3.position.y = 0.128006;
+  pose3.position.z = 0.747510;
+  pose3.orientation.w = 1.0;
+  super3.pose = pose3;
 
+  geometry_msgs::PoseArray poseArr;
+  poseArr.poses.push_back(pose3);
+  poseArr.header.frame_id  = "/base_link";
+  poseArr.header.stamp = ros::Time::now();
 
-  Sampling *sam = new Sampling(super);
-  sam->sample_pilu_fisher();
+  Sampling *sam3 = new Sampling(super3);
+  sam3->sample_pilu_fisher();
+  pcl::PointCloud<PointT>::Ptr cloud3(new pcl::PointCloud<PointT>);
+  sam3->getCloud(cloud3);
+  std::cout<<"size of the sampled cloud: "<<cloud3->points.size()<<std::endl;
+  sensor_msgs::PointCloud2 ros_cloud3;
+  sam3->getCloud(ros_cloud3);
+  ros_cloud3.header.frame_id = "/base_link";
+  ros_cloud3.header.stamp = ros::Time::now();
+
+/*  Sampling *sam = new Sampling(super);
+  sam->sample();
   pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
   sam->getCloud(cloud);
   std::cout<<"size of the sampled cloud: "<<cloud->points.size()<<std::endl;
@@ -69,16 +60,18 @@ int main(int argc, char **argv)
   std::cout<<"size of the second sampled cloud: "<<cloud2->points.size()<<std::endl;
   sensor_msgs::PointCloud2 ros_cloud2;
   sam2->getCloud(ros_cloud2);
-  ros_cloud2.header.frame_id = "/world";
-  ros_cloud2.header.stamp = ros::Time::now();
+  ros_cloud2.header.frame_id = "/base_link";
+  ros_cloud2.header.stamp = ros::Time::now();*/
 
 
 
   ros::Rate loop_rate(1);
   while(nh.ok())
   {
-    pub.publish(ros_cloud);
-    pub2.publish(ros_cloud2);
+    //pub.publish(ros_cloud);
+    //pub2.publish(ros_cloud2);
+    pub3.publish(ros_cloud3);
+    pub4.publish(poseArr);
     ros::spinOnce();
     loop_rate.sleep();
   }

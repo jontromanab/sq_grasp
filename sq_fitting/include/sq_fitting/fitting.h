@@ -10,8 +10,7 @@
 
 typedef pcl::PointXYZRGB PointT;
 
-class SuperquadricFitting
-{
+class SuperquadricFitting{
 public:
   SuperquadricFitting(const SuperquadricFitting &src) {}
   SuperquadricFitting(const pcl::PointCloud<PointT>::Ptr& input_cloud);

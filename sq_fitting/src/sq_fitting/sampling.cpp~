@@ -159,7 +159,7 @@ void Sampling::sample_pilu_fisher()
   pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr cloud_s1(new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr cloud_s2(new pcl::PointCloud<PointT>);
-  int N = 300;
+  int N = 200;
   sample_superEllipse(1, params_.a3, params_.e1, N, cloud_s1);
   sample_superEllipse(params_.a1, params_.a2, params_.e2, N, cloud_s2);
   PointT p1, p2;

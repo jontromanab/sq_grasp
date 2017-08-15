@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 
 
   SQFitter sqfit(nh_, cloud_topic, output_frame,params);
-  std::cout<< "-----Segmentation Parameters------\n";
+  /*std::cout<< "-----Segmentation Parameters------\n";
   std::cout<<" Input \n";
   std::cout<<" cloud_topic: "<<cloud_topic<<"\n";
   std::cout<<"output_frame: "<<output_frame<<"\n";
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
   std::cout<<" use sanity criterion: "<<params.seg_params.use_sanity_criterion<<"\n";
   std::cout<<" concavity tolerance threshold: "<<params.seg_params.concavity_tolerance_threshold<<"\n";
   std::cout<<" smoothness threshold: "<< params.seg_params.smoothness_threshold<<"\n";
-  std::cout<<" min segment size: "<<params.seg_params.min_segment_size<<"\n";
+  std::cout<<" min segment size: "<<params.seg_params.min_segment_size<<"\n";*/
   sqfit.fit();
 
 

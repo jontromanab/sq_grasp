@@ -87,8 +87,8 @@ void SuperquadricFitting::preAlign(Eigen::Affine3f &transform, Eigen::Vector3f &
       //-((min_point_AABB.z+max_point_AABB.z)/2);
 
   Eigen::Vector3f eigenValues;
-  //eigenValues<<major_value, middle_value, minor_value;
-  eigenValues<<0.25,0.25,0.25;
+  eigenValues<<major_value, middle_value, minor_value;
+  //eigenValues<<0.25,0.25,0.25;
   //float aux_ev = eigenValues(0);
   //eigenValues(0) = eigenValues(pre_align_axis_);
   //eigenValues(pre_align_axis_) = aux_ev;

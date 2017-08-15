@@ -11,11 +11,13 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pcl_conversions
   eigen_conversions
+  sensor_msgs
 
 )
 
-
+find_package(freenect2 REQUIRED HINTS "$ENV{HOME}/freenect2")
 find_package(PCL 1.8 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 
 
@@ -28,6 +30,12 @@ add_message_files(
    sqArray.msg
  )
 
+add_service_files(
+   FILES
+   get_sq_param.srv
+#   Service2.srv
+ )
+
 
 
 ## Generate added messages and services with any dependencies listed here
@@ -35,6 +43,7 @@ add_message_files(
    DEPENDENCIES
    std_msgs
    geometry_msgs
+   sensor_msgs
  )
 
 
@@ -46,6 +55,7 @@ catkin_package(
       fitting
       utils
       segmentation
+      #segmentationfloor
       sq_fitter
   CATKIN_DEPENDS roscpp message_runtime
   DEPENDS system_lib
@@ -67,19 +77,21 @@ include_directories(include ${catkin_INCLUDE_DIRS}  ${PCL_INCLUDE_DIR} )
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS} ${freenect2_INCLUDE_DIRS}
 )
 
 add_library(utils  src/sq_fitting/utils.cpp)
 add_library(sampling  src/sq_fitting/sampling.cpp)
 add_library(fitting  src/sq_fitting/fitting.cpp)
 add_library(segmentation  src/sq_fitting/segmentation.cpp)
+#add_library(segmentationfloor  src/sq_fitting/segmentationfloor.cpp)
 add_library(sq_fitter  src/sq_fitting/sq_fitter.cpp)
 
 target_link_libraries(utils  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS} )
 target_link_libraries(sampling utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(fitting utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(segmentation  utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
+#target_link_libraries(segmentationfloor  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(sq_fitter segmentation fitting utils sampling ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 
 
@@ -92,6 +104,14 @@ install(TARGETS sampling fitting segmentation utils sq_fitter
 add_executable(sq_fitter_node src/nodes/sq_fitter_node.cpp)
 add_dependencies(sq_fitter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sq_fitter_node sq_fitter   ${catkin_LIBRARIES})
+
+add_executable(get_depth2rgb_cloud src/nodes/get_depth2rgb_cloud.cpp)
+add_dependencies(get_depth2rgb_cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(get_depth2rgb_cloud   ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES}  ${freenect2_LIBRARY})
+
+add_executable(fitting_service src/sq_fitting/fitting_service.cpp)
+add_dependencies(fitting_service ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(fitting_service  fitting ${catkin_LIBRARIES}  )
 
 
 
