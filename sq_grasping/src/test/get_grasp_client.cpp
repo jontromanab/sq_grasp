@@ -1,12 +1,12 @@
 #include <ros/ros.h>
-#include <sq_fitting/get_sq.h>
+#include<sq_grasping/getGrasps.h>
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "get_sq_test");
+  ros::init(argc, argv, "get_grasp_test");
   ros::NodeHandle nh;
 
   //Creating a service client to get grasps from sq_grasp service
-  ros::ServiceClient client = nh.serviceClient<sq_fitting::get_sq>("/super/sqs");
+  ros::ServiceClient client = nh.serviceClient<sq_grasping::getGrasps>("/super/sq_grasps");
   sq_fitting::get_sq srv;
 
 

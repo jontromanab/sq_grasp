@@ -17,16 +17,14 @@ public:
   void runNode();
 
 private:
-  void sqCallback(const sq_fitting::sqArray& msg);
-  bool serviceCallback(sq_grasping::getGrasps::Request& req, sq_grasping::getGrasps::Response& res);
 
-  ros::Subscriber sq_sub_;
+  bool serviceCallback(sq_grasping::getGrasps::Request& req, sq_grasping::getGrasps::Response& res);
   ros::ServiceServer service_;
+  ros::ServiceClient client_;
 
 
   grasp_execution::graspArr grasps_;
   sq_fitting::sqArray sqs_;
-  sq_fitting::sqArray new_sqs_;
   ros::NodeHandle nh_;
 };
 

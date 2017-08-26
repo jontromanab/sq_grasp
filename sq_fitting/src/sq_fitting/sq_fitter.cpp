@@ -30,13 +30,13 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const 
   filtered_cloud_pub_ = node.advertise<sensor_msgs::PointCloud2>("filtered_cloud",10);
   poses_pub_ = node.advertise<geometry_msgs::PoseArray>("sq_poses",10);
   cut_cloud_pub_ = node.advertise<sensor_msgs::PointCloud2>("cut_cloud", 10);
-  sqs_pub_ = node.advertise<sq_fitting::sqArray>("sqs",10);
+  //sqs_pub_ = node.advertise<sq_fitting::sqArray>("sqs",10);
   center_pub_ = node.advertise<visualization_msgs::Marker>("visualization_marker",10);
   transformed_pub_ = node.advertise<sensor_msgs::PointCloud2>("trnsformed_cloud",10);
 
   client_=node.serviceClient<iri_tos_supervoxels::object_segmentation>("/iri_tos_supervoxels_alg/object_segmentation");
  //client_param = node.serviceClient<sq_fitting::get_sq_param>("/get_sq_param");
-  service_ = node.advertiseService("sq_grasps", &SQFitter::serviceCallback, this);
+  service_ = node.advertiseService("sqs", &SQFitter::serviceCallback, this);
 
   this->sq_param_ = params;
   this->seg_param_ = params.seg_params;
@@ -539,7 +539,7 @@ void SQFitter::publishClouds()
   superquadrics_pub_.publish(sq_cloud_);
   poses_pub_.publish(poseArr_);
   cut_cloud_pub_.publish(cut_cloud_ros_);
-  sqs_pub_.publish(sqArr_);
+  //sqs_pub_.publish(sqArr_);
   center_pub_.publish(centerPoint_);
  }
 
