@@ -49,3 +49,8 @@ add_executable(execute_grasps_node src/nodes/execute_grasps_node.cpp)
 add_dependencies(execute_grasps_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(execute_grasps_node sq_grasping  ${catkin_LIBRARIES})
 
+
+add_executable(get_grasp_client src/test/get_grasp_client.cpp)
+add_dependencies(get_grasp_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(get_grasp_client  ${catkin_LIBRARIES})
+

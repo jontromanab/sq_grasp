@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "sq_grasping_node");
+  ros::init(argc, argv, "super");
   ros::NodeHandle nh_("~");
 
   std::string sq_topic;

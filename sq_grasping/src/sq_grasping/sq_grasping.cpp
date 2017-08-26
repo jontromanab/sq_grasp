@@ -6,7 +6,7 @@ SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic)
 {
   //calling sq_ server and creating sq_grasp server
   client_ = nh.serviceClient<sq_fitting::get_sq>(sq_topic);
-  service_ = nh_.advertiseService("sq_grasps", &SQGrasping::serviceCallback, this);
+  service_ = nh_.advertiseService("grasps", &SQGrasping::serviceCallback, this);
   std::cout<<"Started finding graps in superquadrics"<<std::endl;
 }
 

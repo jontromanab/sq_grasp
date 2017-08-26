@@ -6,13 +6,15 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
 
   //Creating a service client to get grasps from sq_grasp service
-  ros::ServiceClient client = nh.serviceClient<sq_grasping::getGrasps>("/super/sq_grasps");
-  sq_fitting::get_sq srv;
+  ros::ServiceClient client = nh.serviceClient<sq_grasping::getGrasps>("/sq_grasp/grasps");
+  sq_grasping::getGrasps srv;
+
+  srv.request.num_of_fingers = 2;
 
 
-  srv.request.running = true;
+
   client.call(srv);
-  std::cout<<"Got "<<srv.response.sqs.sqs.size()<<" superquadrics"<<std::endl;
+  std::cout<<"Got "<<srv.response.grasps.grasps.size()<<" grasps back"<<std::endl;
 
   return 0;
 
