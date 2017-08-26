@@ -6,9 +6,9 @@
 #include<sq_fitting/sampling.h>
 #include<sq_fitting/sq.h>
 #include<sq_fitting/sqArray.h>
+#include<sq_fitting/get_sq.h>
 #include <pcl/filters/filter.h>
 #include <geometry_msgs/PoseArray.h>
-
 #include<visualization_msgs/Marker.h>
 
 class SQFitter
@@ -47,6 +47,8 @@ private:
 
   ros::ServiceClient client_;
   ros::ServiceClient client_param;
+
+  bool serviceCallback(sq_fitting::get_sq::Request &req, sq_fitting::get_sq::Response &res);
 
 
   sensor_msgs::PointCloud2 table_cloud_;
@@ -93,6 +95,7 @@ private:
   sq_fitting::sqArray sqArr_;
   bool initialized;
   std::string output_frame_;
+  ros::ServiceServer service_;
 
 };
 

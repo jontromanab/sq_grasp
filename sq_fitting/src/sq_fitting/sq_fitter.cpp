@@ -35,12 +35,21 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const 
   transformed_pub_ = node.advertise<sensor_msgs::PointCloud2>("trnsformed_cloud",10);
 
   client_=node.serviceClient<iri_tos_supervoxels::object_segmentation>("/iri_tos_supervoxels_alg/object_segmentation");
-  client_param = node.serviceClient<sq_fitting::get_sq_param>("/get_sq_param");
+ //client_param = node.serviceClient<sq_fitting::get_sq_param>("/get_sq_param");
+  service_ = node.advertiseService("sq_grasps", &SQFitter::serviceCallback, this);
 
   this->sq_param_ = params;
   this->seg_param_ = params.seg_params;
   this->initialized = true;
   Objects_.resize(0);
+}
+
+bool SQFitter::serviceCallback(sq_fitting::get_sq::Request &req, sq_fitting::get_sq::Response &res)
+{
+  std::cout<<"Service callback started"<<std::endl;
+  std::cout<<"Request received to send back SQ"<<std::endl;
+  res.sqs = sqArr_;
+  std::cout<<"Sending back: "<<sqArr_.sqs.size()<<" superquadrics";
 }
 
 void SQFitter::cloud_callback(const sensor_msgs::PointCloud2ConstPtr &input)
@@ -480,6 +489,8 @@ void SQFitter::sampleSuperquadrics(const std::vector<sq_fitting::sq>& params)
     super.e2 = params[i].e2;
     super.pose = params[i].pose;
     sqArr_.sqs.push_back(super);
+    sqArr_.header.frame_id = output_frame_;
+    sqArr_.header.stamp = ros::Time::now();
 
     Sampling* sam = new Sampling(super);
 
