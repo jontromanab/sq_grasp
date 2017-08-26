@@ -2,7 +2,16 @@ cmake_minimum_required(VERSION 2.8.3)
 project(sq_grasping)
 
 
-find_package(catkin REQUIRED COMPONENTS sq_fitting grasp_execution cmake_modules roscpp message_generation geometry_msgs )
+find_package(catkin REQUIRED COMPONENTS
+    sq_fitting
+    grasp_execution
+    cmake_modules
+    roscpp
+    message_generation
+    geometry_msgs
+    pcl_ros
+    pcl_conversions
+    sensor_msgs)
 
 
 find_package(Boost REQUIRED COMPONENTS system)
@@ -32,10 +41,17 @@ include_directories(include
 
 
 add_library(sq_grasping  src/sq_grasping/sq_grasping.cpp)
+add_library(create_grasps src/sq_grasping/create_grasps.cpp)
 
-target_link_libraries(sq_grasping ${catkin_LIBRARIES})
+target_link_libraries(sq_grasping ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR})
+target_link_libraries(create_grasps ${catkin_LIBRARIES} )
 
 install(TARGETS sq_grasping
+ ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+ LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(TARGETS create_grasps
  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )

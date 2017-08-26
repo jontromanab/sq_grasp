@@ -2,5 +2,6 @@
 
   <node name="sq_grasp" pkg="sq_grasping" type="sq_grasping_node" output="screen">
       <param name="sq_topic" value="/super/sqs" />
+      <param name="show_sq" value = "true" />
    </node>
 </launch>
