@@ -8,6 +8,8 @@
 #include<sq_grasping/getGrasps.h>
 #include<sensor_msgs/PointCloud2.h>
 #include<geometry_msgs/PoseArray.h>
+#include<visualization_msgs/MarkerArray.h>
+
 
 
 
@@ -23,6 +25,7 @@ private:
   bool checkForTransform(const std::string& input_frame, const std::string& output_frame);
   void transformFrame(const std::string& input_frame, const std::string& output_frame,const geometry_msgs::Pose &pose_in, geometry_msgs::Pose& pose_out);
   void createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::graspArr& gs);
+  void createGraspsMarkers(const grasp_execution::graspArr& grasps, visualization_msgs::MarkerArray& markers);
   void sampleSQFromSQS(const sq_fitting::sqArray &sqs);
   bool serviceCallback(sq_grasping::getGrasps::Request& req, sq_grasping::getGrasps::Response& res);
   ros::ServiceServer service_;
@@ -37,7 +40,7 @@ private:
   ros::Publisher grasp_pub_;
   sensor_msgs::PointCloud2 sq_cloud_;
   std::string output_frame_;
-  geometry_msgs::PoseArray poses_;
+  visualization_msgs::MarkerArray poses_;
 };
 
 

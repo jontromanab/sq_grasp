@@ -3,6 +3,7 @@
 
 #include<sq_fitting/sqArray.h>
 #include<grasp_execution/graspArr.h>
+#include<geometry_msgs/Pose.h>
 
 class CreateGrasps
 {
@@ -15,6 +16,9 @@ private:
   sq_fitting::sqArray sqArr_;
   grasp_execution::graspArr init_grasps_;
   std::string frame_id_;
+
+  void createGraspPoses(const sq_fitting::sq& sq,
+                        std::vector<geometry_msgs::Pose>& poses);
 
 
 

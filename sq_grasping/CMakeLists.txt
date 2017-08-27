@@ -11,7 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     pcl_ros
     pcl_conversions
-    sensor_msgs)
+    sensor_msgs
+    tf2)
 
 
 find_package(Boost REQUIRED COMPONENTS system)

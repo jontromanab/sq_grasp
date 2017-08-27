@@ -8,6 +8,7 @@
 #include <Eigen/Eigen>
 #include <eigen_conversions/eigen_msg.h>
 #include<sq_grasping/create_grasps.h>
+#include<visualization_msgs/MarkerArray.h>
 
 
 
@@ -18,7 +19,7 @@ SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic, bool sh
   client_ = nh.serviceClient<sq_fitting::get_sq>(sq_topic);
   service_ = nh_.advertiseService("grasps", &SQGrasping::serviceCallback, this);
   superquadrics_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("sq",10);
-  grasp_pub_ = nh_.advertise<geometry_msgs::PoseArray>("grasps",10);
+  grasp_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("grasps",10);
 }
 
 SQGrasping::~SQGrasping()
@@ -118,6 +119,30 @@ void SQGrasping::transformFrame(const std::string& input_frame, const std::strin
     }
   }
 
+void SQGrasping::createGraspsMarkers(const grasp_execution::graspArr &grasps, visualization_msgs::MarkerArray& markers)
+{
+  markers.markers.resize(0);
+  for (int i=0;i<grasps.grasps.size();++i)
+  {
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = grasps.header.frame_id;
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "arrow";
+    marker.id = i;
+    marker.type = visualization_msgs::Marker::ARROW;
+    marker.pose = grasps.grasps[i].pose;
+    marker.scale.x = 0.05;
+    marker.scale.y = 0.01;
+    marker.scale.z = 0.01;
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+    marker.color.a = 1.0;
+    marker.lifetime = ros::Duration();
+    markers.markers.push_back(marker);
+  }
+}
+
 void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::graspArr& gs)
 {
   sq_fitting::sqArray new_sqArr;
@@ -149,13 +174,8 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
   delete create;
 
   //Creating poseArray for visualization.
-  poses_.header.frame_id = grasps.header.frame_id;
-  poses_.header.stamp = ros::Time::now();
-  for (int i=0;i<grasps.grasps.size();++i)
-  {
-    poses_.poses.push_back(grasps.grasps[i].pose);
-  }
-
+  std::cout<<"We have: "<<grasps.grasps.size()<<" grasps."<<std::endl;
+  createGraspsMarkers(grasps, poses_);
   gs = grasps;
 
 }

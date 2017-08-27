@@ -1,4 +1,9 @@
 #include<sq_grasping/create_grasps.h>
+#include<tf2/LinearMath/Transform.h>
+#include<tf2/LinearMath/Quaternion.h>
+#include <Eigen/Eigen>
+#include <eigen_conversions/eigen_msg.h>
+#include<tf/transform_listener.h>
 
 CreateGrasps::CreateGrasps(sq_fitting::sqArray sqArr)
 {
@@ -12,14 +17,119 @@ CreateGrasps::~CreateGrasps()
 
 }
 
+Eigen::Affine3d create_rotation_matrix(double ax, double ay, double az) {
+  Eigen::Affine3d rx =
+      Eigen::Affine3d(Eigen::AngleAxisd(ax, Eigen::Vector3d(1, 0, 0)));
+  Eigen::Affine3d ry =
+      Eigen::Affine3d(Eigen::AngleAxisd(ay, Eigen::Vector3d(0, 1, 0)));
+  Eigen::Affine3d rz =
+      Eigen::Affine3d(Eigen::AngleAxisd(az, Eigen::Vector3d(0, 0, 1)));
+  return rz * ry * rx;
+}
+
+Eigen::Affine3d create_transformation_matrix(const double tx, const double ty, const double tz, const double ax, const double ay, const double az)
+{
+  Eigen::Affine3d rot_matrix =create_rotation_matrix(ax, ay, az);
+  Eigen::Affine3d translation_matrix(Eigen::Translation3d(Eigen::Vector3d(tx, ty, tz)));
+  Eigen::Affine3d trns_mat = translation_matrix*rot_matrix;// * translation_matrix;
+  return trns_mat;
+}
+
+geometry_msgs::Pose rotatePose(const geometry_msgs::Pose pose, double value, int dir, bool negative)
+{
+  tf2::Transform trns;
+  tf2::Quaternion quat(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+  tf2::Vector3 vec(pose.position.x, pose.position.y, pose.position.z);
+  trns.setOrigin (vec);
+  trns.setRotation (quat);
+
+  tf2::Quaternion quat2;
+
+  int ve_value = -1;
+  if(negative)
+    ve_value = 1;
+
+  if(dir==1)
+    quat2.setRPY(ve_value*value, 0,  0);
+  if(dir==2)
+    quat2.setRPY(0,ve_value*value, 0);
+  if(dir==3)
+    quat2.setRPY(0,0,ve_value*value);
+  tf2::Vector3 vec2(0, 0 , 0);
+  tf2::Transform multiplier;
+  //multiplier.setIdentity ();
+  multiplier.setOrigin (vec2);
+  multiplier.setRotation (quat2);
+
+  trns = trns * multiplier;
+  tf2::Vector3 new_pose_vec;
+  tf2::Quaternion new_pose_quat;
+  new_pose_vec = trns.getOrigin ();
+  new_pose_quat = trns.getRotation ();
+  new_pose_quat.normalize ();
+
+  geometry_msgs::Pose new_pose;
+  new_pose.position.x = new_pose_vec[0];
+  new_pose.position.y = new_pose_vec[1];
+  new_pose.position.z = new_pose_vec[2];
+  new_pose.orientation.x = new_pose_quat[0];
+  new_pose.orientation.y = new_pose_quat[1];
+  new_pose.orientation.z = new_pose_quat[2];
+  new_pose.orientation.w = new_pose_quat[3];
+  return new_pose;
+}
+
+
+
+void CreateGrasps::createGraspPoses(const sq_fitting::sq &sq, std::vector<geometry_msgs::Pose> &poses)
+{
+  //First transform the pose to the origin
+  Eigen::Affine3d pose_in_eigen;
+  tf::poseMsgToEigen(sq.pose, pose_in_eigen);
+  Eigen::Affine3d pose_inv = pose_in_eigen.inverse();
+  Eigen::Affine3d pose_in_center = pose_in_eigen * pose_inv;
+
+  Eigen::Affine3d translation_matrix_orig(Eigen::Translation3d(Eigen::Vector3d(-sq.a1, 0, 0)));
+  Eigen::Affine3d pose_in_center_trnsl1 = translation_matrix_orig* pose_in_center;
+  Eigen::Affine3d back_to_place1 = pose_in_eigen * pose_in_center_trnsl1 ;
+  geometry_msgs::Pose orig_pose;
+  tf::poseEigenToMsg(back_to_place1, orig_pose);
+  poses.push_back(orig_pose);
+
+
+  //Eigen::Affine3d translation_matrix_inverted(Eigen::Translation3d(Eigen::Vector3d(sq.a1, 0, 0)));
+  //Eigen::Affine3d transformation_mat = create_rotation_matrix(0, 0, M_PI);
+  //Eigen::Affine3d inverted_pose_eigen = pose_in_center* transformation_mat;
+  //Eigen::Affine3d pose_in_center_trnsl2 = translation_matrix_inverted* inverted_pose_eigen;
+
+  Eigen::Affine3d transformation_mat =  create_transformation_matrix(sq.a1, 0, 0, 0, 0, M_PI);
+  Eigen::Affine3d pose_in_center_inv_x = pose_in_center * transformation_mat;
+  Eigen::Affine3d back_to_place2 = pose_in_eigen * pose_in_center_inv_x ;
+
+  geometry_msgs::Pose inverted_pose;
+  tf::poseEigenToMsg(back_to_place2, inverted_pose);
+
+
+  poses.push_back(inverted_pose);
+
+}
+
+
 void CreateGrasps::sample_initial_grasps()
 {
   init_grasps_.header.frame_id = frame_id_;
   init_grasps_.header.stamp = ros::Time::now();
   for(int i=0;i<sqArr_ .sqs.size();++i)
     {
-      grasp_execution::grasp gr;
-      gr.pose = sqArr_ .sqs[i].pose;
+      std::vector<geometry_msgs::Pose> poses;
+      createGraspPoses(sqArr_ .sqs[i], poses);
+      for (int j=0;j<poses.size();++j)
+      {
+        grasp_execution::grasp gr;
+        gr.pose = poses[j];
+        init_grasps_.grasps.push_back(gr);
+      }
+      /*gr.pose = sqArr_ .sqs[i].pose;
       gr.pose.position.z = sqArr_.sqs[i].pose.position.z + 0.14;
       gr.pose.orientation.x = 0.639;
       gr.pose.orientation.y = -0.326;
@@ -28,8 +138,8 @@ void CreateGrasps::sample_initial_grasps()
       gr.angle = 0.79;
       gr.approach.x = 0.0;
       gr.approach.y = 0.0;
-      gr.approach.z = -1.0;
-      init_grasps_.grasps.push_back(gr);
+      gr.approach.z = -1.0;*/
+
     }
 
 
