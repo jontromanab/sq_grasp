@@ -30,7 +30,8 @@ catkin_package(
   INCLUDE_DIRS
       include
   LIBRARIES
-      sq_grasping
+  sq_grasping
+  create_grasps
   CATKIN_DEPENDS roscpp
   DEPENDS system_lib
 )
@@ -39,12 +40,13 @@ include_directories(include
   ${catkin_INCLUDE_DIRS}
 )
 
+add_library(create_grasps src/sq_grasping/create_grasps.cpp)
+target_link_libraries(create_grasps ${catkin_LIBRARIES} )
+
 
 add_library(sq_grasping  src/sq_grasping/sq_grasping.cpp)
-add_library(create_grasps src/sq_grasping/create_grasps.cpp)
+target_link_libraries(sq_grasping create_grasps ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR})
 
-target_link_libraries(sq_grasping ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR})
-target_link_libraries(create_grasps ${catkin_LIBRARIES} )
 
 install(TARGETS sq_grasping
  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
