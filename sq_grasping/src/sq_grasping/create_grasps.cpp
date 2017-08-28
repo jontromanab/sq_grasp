@@ -97,11 +97,6 @@ void CreateGrasps::createGraspPoses(const sq_fitting::sq &sq, std::vector<geomet
   poses.push_back(orig_pose);
 
 
-  //Eigen::Affine3d translation_matrix_inverted(Eigen::Translation3d(Eigen::Vector3d(sq.a1, 0, 0)));
-  //Eigen::Affine3d transformation_mat = create_rotation_matrix(0, 0, M_PI);
-  //Eigen::Affine3d inverted_pose_eigen = pose_in_center* transformation_mat;
-  //Eigen::Affine3d pose_in_center_trnsl2 = translation_matrix_inverted* inverted_pose_eigen;
-
   Eigen::Affine3d transformation_mat_x =  create_transformation_matrix(sq.a1, 0, 0, 0, 0, M_PI);
   Eigen::Affine3d pose_in_center_inv_x = pose_in_center * transformation_mat_x;
   Eigen::Affine3d back_to_place2 = pose_in_eigen * pose_in_center_inv_x ;
