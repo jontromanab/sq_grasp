@@ -164,13 +164,14 @@ void CreateGrasps::createGraspPoses(const sq_fitting::sq &sq, std::vector<geomet
   poses.push_back(pose_z);
 
   //Second grasp in Z direction
-  Eigen::Affine3d transformation_mat_inv_z =  create_transformation_matrix(0, 0,-sq.a3, 0,  -M_PI/2, 0);
+  //As we know +z is upwards. We cannot grasp any object from -z. So less calculations :)
+  /*Eigen::Affine3d transformation_mat_inv_z =  create_transformation_matrix(0, 0,-sq.a3, 0,  -M_PI/2, 0);
   Eigen::Affine3d pose_in_center_inv_z = pose_in_center * transformation_mat_inv_z;
   Eigen::Affine3d back_to_place6 = pose_in_eigen * pose_in_center_inv_z ;
   Eigen::Affine3d back_to_place6_trnsformed = back_to_place6*transform_;
   geometry_msgs::Pose pose_inv_z;
   tf::poseEigenToMsg(back_to_place6_trnsformed, pose_inv_z);
-  poses.push_back(pose_inv_z);
+  poses.push_back(pose_inv_z);*/
 
 }
 
