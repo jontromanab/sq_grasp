@@ -164,7 +164,10 @@ void CreateGrasps::createGraspPoses(const sq_fitting::sq &sq, std::vector<geomet
   poses.push_back(pose_z);
 
   //Second grasp in Z direction
-  //As we know +z is upwards. We cannot grasp any object from -z. So less calculations :)
+  //As we know +z is upwards. We cannot grasp any object from -z. Instead we rotate the z by its axis.
+  //So we the grasp angle can be according to a1 or a2
+  //We are not rotating every pose by its axis because if it is rotated then one finger will surely collide with z
+
   /*Eigen::Affine3d transformation_mat_inv_z =  create_transformation_matrix(0, 0,-sq.a3, 0,  -M_PI/2, 0);
   Eigen::Affine3d pose_in_center_inv_z = pose_in_center * transformation_mat_inv_z;
   Eigen::Affine3d back_to_place6 = pose_in_eigen * pose_in_center_inv_z ;
@@ -172,6 +175,9 @@ void CreateGrasps::createGraspPoses(const sq_fitting::sq &sq, std::vector<geomet
   geometry_msgs::Pose pose_inv_z;
   tf::poseEigenToMsg(back_to_place6_trnsformed, pose_inv_z);
   poses.push_back(pose_inv_z);*/
+
+  geometry_msgs::Pose pose_z_rotated = rotatePose(pose_z, M_PI/2, 1,false);
+  poses.push_back(pose_z_rotated);
 
 }
 
