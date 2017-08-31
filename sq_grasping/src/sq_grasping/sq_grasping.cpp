@@ -177,7 +177,7 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
       new_sqArr.sqs.push_back(new_sq);
   }
   sampleSQFromSQS(new_sqArr);
-  CreateGrasps* create = new CreateGrasps(new_sqArr, arm_group_,ee_name_);
+  CreateGrasps* create = new CreateGrasps(new_sqArr, arm_group_,ee_grasp_link_);
   create->sample_initial_grasps();
   grasp_execution::graspArr grasps;
   create->getGrasps(grasps);
