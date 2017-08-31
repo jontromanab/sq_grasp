@@ -16,10 +16,10 @@
 
 SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic, bool show_sq, bool show_grasp,
                        const std::string output_frame, const std::string ee_group,const std::string ee_grasp_link,
-                       const std::string arm_group)
+                       const std::string ee_joint, const std::string arm_group)
   :nh_(nh), spinner(1) ,show_sq_(show_sq), show_grasp_(show_grasp),
     output_frame_(output_frame), ee_group_(ee_group),
-    ee_grasp_link_(ee_grasp_link), arm_group_(arm_group)
+    ee_grasp_link_(ee_grasp_link), ee_joint_(ee_joint), arm_group_(arm_group)
 {
   //calling sq_ server and creating sq_grasp server
   client_ = nh.serviceClient<sq_fitting::get_sq>(sq_topic);
@@ -240,10 +240,10 @@ visualization_msgs::MarkerArray SQGrasping::createGripperMarkerMoveIT(geometry_m
   moveit::core::RobotStatePtr robot_state_(new moveit::core::RobotState(robot_model));
 
   //Setting the gripper joint to the openning value of the gripper
-  const std::string ee_joint = "l_gripper_l_finger_joint";
+  //const std::string ee_joint = "l_gripper_l_finger_joint";
   double value = opening_angle;
   double *valuePtr = &value;
-  robot_state_->setJointPositions(ee_joint, valuePtr);
+  robot_state_->setJointPositions(ee_joint_, valuePtr);
   robot_state_->update();
 
   //New jointmodel group of the end effector with the opening value

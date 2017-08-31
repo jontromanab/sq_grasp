@@ -9,6 +9,7 @@
         <!-- EE params -->
        <param name="ee_group" value="left_gripper" />
        <param name="ee_grasp_link" value = "l_gripper_tool_frame"/>
+       <param name="ee_joint" value = "l_gripper_l_finger_joint" />
 
         <!--Manipulator params-->
         <param name="arm_group" value="left_arm"/>
