@@ -26,8 +26,8 @@ private:
   Eigen::Affine3d transform_;
 
 
-  void createGraspPoses(const sq_fitting::sq& sq,
-                        std::vector<geometry_msgs::Pose>& poses);
+  void createInitGrasps(const sq_fitting::sq& sq,
+                        std::vector<grasp_execution::grasp>& grasps);
 
   void createTransform(const std::string& grasp_frame);
   void TransformPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);

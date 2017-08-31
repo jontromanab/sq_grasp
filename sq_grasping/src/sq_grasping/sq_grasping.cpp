@@ -190,7 +190,7 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
     createGraspsMarkers(grasps, poses_arrow_);
     for (int i=0;i<grasps.grasps.size();++i)
     {
-      visualization_msgs::MarkerArray markArr = createGripperMarkerMoveIT(grasps.grasps[i].pose, 0.0, i+1);
+      visualization_msgs::MarkerArray markArr = createGripperMarkerMoveIT(grasps.grasps[i].pose, grasps.grasps[i].angle, i+1);
       for(int j=0;j<markArr.markers.size();++j)
       {
         poses_.markers.push_back(markArr.markers[j]);
