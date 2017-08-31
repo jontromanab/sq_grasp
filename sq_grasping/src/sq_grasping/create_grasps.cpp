@@ -5,11 +5,13 @@
 #include <eigen_conversions/eigen_msg.h>
 #include<tf/transform_listener.h>
 
-CreateGrasps::CreateGrasps(sq_fitting::sqArray sqArr)
+CreateGrasps::CreateGrasps(sq_fitting::sqArray sqArr, const std::string group,const std::string ee_name):
+  group_(group), ee_name_(ee_name)
 {
-  sqArr_ = sqArr;\
+  sqArr_ = sqArr;
   init_grasps_.grasps.resize(0);
   frame_id_ = sqArr_.header.frame_id;
+
 }
 
 CreateGrasps::~CreateGrasps()
@@ -79,8 +81,6 @@ geometry_msgs::Pose rotatePose(const geometry_msgs::Pose pose, double value, int
   return new_pose;
 }
 
-
-
 void CreateGrasps::createGraspPoses(const sq_fitting::sq &sq, std::vector<geometry_msgs::Pose> &poses)
 {
   //First transform the pose to the origin
@@ -98,13 +98,8 @@ void CreateGrasps::createGraspPoses(const sq_fitting::sq &sq, std::vector<geomet
   poses.push_back(orig_pose);
 
 
-  //Eigen::Affine3d translation_matrix_inverted(Eigen::Translation3d(Eigen::Vector3d(sq.a1, 0, 0)));
-  //Eigen::Affine3d transformation_mat = create_rotation_matrix(0, 0, M_PI);
-  //Eigen::Affine3d inverted_pose_eigen = pose_in_center* transformation_mat;
-  //Eigen::Affine3d pose_in_center_trnsl2 = translation_matrix_inverted* inverted_pose_eigen;
-
   //Second grasp in x direction
-  Eigen::Affine3d transformation_mat_x =  create_transformation_matrix(sq.a1, 0, 0, 0, 0, M_PI);
+  /*Eigen::Affine3d transformation_mat_x =  create_transformation_matrix(sq.a1, 0, 0, 0, 0, M_PI);
   Eigen::Affine3d pose_in_center_inv_x = pose_in_center * transformation_mat_x;
   Eigen::Affine3d back_to_place2 = pose_in_eigen * pose_in_center_inv_x ;
   geometry_msgs::Pose inverted_pose_x;
@@ -142,12 +137,9 @@ void CreateGrasps::createGraspPoses(const sq_fitting::sq &sq, std::vector<geomet
   Eigen::Affine3d back_to_place6 = pose_in_eigen * pose_in_center_inv_z ;
   geometry_msgs::Pose pose_inv_z;
   tf::poseEigenToMsg(back_to_place6, pose_inv_z);
-  poses.push_back(pose_inv_z);
-
-
+  poses.push_back(pose_inv_z);*/
 
 }
-
 
 void CreateGrasps::sample_initial_grasps()
 {

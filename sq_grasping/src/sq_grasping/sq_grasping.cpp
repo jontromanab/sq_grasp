@@ -10,16 +10,25 @@
 #include<sq_grasping/create_grasps.h>
 #include<visualization_msgs/MarkerArray.h>
 
+#include<grasp_execution/create_gripper_marker.h>
 
 
-SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic, bool show_sq, const std::string output_frame)
-  :nh_(nh), show_sq_(show_sq), output_frame_(output_frame)
+
+SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic, bool show_sq, bool show_grasp,
+                       const std::string output_frame, const std::string ee_group,const std::string ee_grasp_link,
+                       const std::string arm_group)
+  :nh_(nh), spinner(1) ,show_sq_(show_sq), show_grasp_(show_grasp),
+    output_frame_(output_frame), ee_group_(ee_group),
+    ee_grasp_link_(ee_grasp_link), arm_group_(arm_group)
 {
   //calling sq_ server and creating sq_grasp server
   client_ = nh.serviceClient<sq_fitting::get_sq>(sq_topic);
   service_ = nh_.advertiseService("grasps", &SQGrasping::serviceCallback, this);
   superquadrics_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("sq",10);
   grasp_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("grasps",10);
+  grasp_pub_arrow_ = nh_.advertise<visualization_msgs::MarkerArray>("grasps_arrow",10);
+
+  ee_name_ = ee_group;
 }
 
 SQGrasping::~SQGrasping()
@@ -70,6 +79,7 @@ void SQGrasping::runNode()
     rate.sleep();
     superquadrics_pub_.publish(sq_cloud_);
     grasp_pub_.publish(poses_);
+    grasp_pub_arrow_.publish(poses_arrow_);
   }
 }
 
@@ -167,7 +177,7 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
       new_sqArr.sqs.push_back(new_sq);
   }
   sampleSQFromSQS(new_sqArr);
-  CreateGrasps* create = new CreateGrasps(new_sqArr);
+  CreateGrasps* create = new CreateGrasps(new_sqArr, arm_group_,ee_name_);
   create->sample_initial_grasps();
   grasp_execution::graspArr grasps;
   create->getGrasps(grasps);
@@ -175,7 +185,22 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
 
   //Creating poseArray for visualization.
   std::cout<<"We have: "<<grasps.grasps.size()<<" grasps."<<std::endl;
-  createGraspsMarkers(grasps, poses_);
+  if(show_grasp_)
+  {
+    createGraspsMarkers(grasps, poses_arrow_);
+    for (int i=0;i<grasps.grasps.size();++i)
+    {
+      visualization_msgs::MarkerArray markArr = createGripperMarkerMoveIT(grasps.grasps[i].pose, i+1);
+      for(int j=0;j<markArr.markers.size();++j)
+      {
+        poses_.markers.push_back(markArr.markers[j]);
+      }
+    }
+  }
+  //
+  //Showing grasps as gripper instead of arrow for better understanding.
+
+
   gs = grasps;
 
 }
@@ -208,4 +233,65 @@ bool SQGrasping::serviceCallback(sq_grasping::getGrasps::Request &req, sq_graspi
 
 }
 
+visualization_msgs::MarkerArray SQGrasping::createGripperMarkerMoveIT(geometry_msgs::Pose pose, int id)
+{
+  std::string ee_name = ee_group_.getName();
+  moveit::core::RobotModelConstPtr robot_model = ee_group_.getRobotModel();
+  moveit::core::RobotStatePtr robot_state_(new moveit::core::RobotState(robot_model));
 
+  //Setting the gripper joint to the openning value of the gripper
+  const std::string ee_joint = "l_gripper_l_finger_joint";
+  double value = double(0.12);
+  double *valuePtr = &value;
+  robot_state_->setJointPositions(ee_joint, valuePtr);
+  robot_state_->update();
+
+  //New jointmodel group of the end effector with the opening value
+  const moveit::core::JointModelGroup* ee_jmp = robot_model->getJointModelGroup(ee_name);
+  if(ee_jmp == NULL)
+  {
+    ROS_ERROR_STREAM("Unable to find joint model group with address"<<ee_jmp);
+    //return false;
+  }
+
+  //maps
+  std::map<const robot_model::JointModelGroup *, visualization_msgs::MarkerArray> ee_markers_map_;
+  ee_markers_map_[ee_jmp].markers.clear();
+  const std::vector<std::string>& ee_link_names = ee_jmp->getLinkModelNames();
+  robot_state_->getRobotMarkers(ee_markers_map_[ee_jmp], ee_link_names);
+  const std::string& ee_parent_link_name = ee_jmp->getEndEffectorParentGroup().second;
+
+  Eigen::Affine3d tf_root_to_ee = robot_state_->getGlobalLinkTransform(ee_parent_link_name);
+  Eigen::Affine3d tf_ee_to_root = tf_root_to_ee.inverse();
+  Eigen::Affine3d trans_bw_poses;
+  trans_bw_poses = tf_root_to_ee * tf_ee_to_root;
+
+  Eigen::Affine3d grasp_tf;
+  tf::poseMsgToEigen(pose, grasp_tf);
+  for(std::size_t i=0; i<ee_markers_map_[ee_jmp].markers.size();++i)
+  {
+    ee_markers_map_[ee_jmp].markers[i].header.frame_id = "/base_link";
+    ee_markers_map_[ee_jmp].markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
+    ee_markers_map_[ee_jmp].markers[i].mesh_use_embedded_materials = true;
+    ee_markers_map_[ee_jmp].markers[i].id = ((i+5)*100*id)-id;
+
+    ee_markers_map_[ee_jmp].markers[i].header.stamp = ros::Time::now();
+    ee_markers_map_[ee_jmp].markers[i].ns = "gripper_links";
+    ee_markers_map_[ee_jmp].markers[i].lifetime = ros::Duration(40.0);
+
+    ee_markers_map_[ee_jmp].markers[i].color.r = 0.5;
+    ee_markers_map_[ee_jmp].markers[i].color.g = 0.5;
+    ee_markers_map_[ee_jmp].markers[i].color.b = 0.0;
+    ee_markers_map_[ee_jmp].markers[i].color.a = 0.5;
+
+    Eigen::Affine3d link_marker;
+    tf::poseMsgToEigen(ee_markers_map_[ee_jmp].markers[i].pose, link_marker);
+
+    Eigen::Affine3d tf_link_in_root =  tf_ee_to_root * link_marker;
+
+    geometry_msgs::Pose new_marker_pose;
+    tf::poseEigenToMsg( grasp_tf * tf_link_in_root  , new_marker_pose );
+    ee_markers_map_[ee_jmp].markers[i].pose = new_marker_pose;
+  }
+  return ee_markers_map_[ee_jmp];
+}
