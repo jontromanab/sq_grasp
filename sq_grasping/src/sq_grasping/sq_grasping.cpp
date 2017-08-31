@@ -190,7 +190,7 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
     createGraspsMarkers(grasps, poses_arrow_);
     for (int i=0;i<grasps.grasps.size();++i)
     {
-      visualization_msgs::MarkerArray markArr = createGripperMarkerMoveIT(grasps.grasps[i].pose, i+1);
+      visualization_msgs::MarkerArray markArr = createGripperMarkerMoveIT(grasps.grasps[i].pose, 0.0, i+1);
       for(int j=0;j<markArr.markers.size();++j)
       {
         poses_.markers.push_back(markArr.markers[j]);
@@ -233,7 +233,7 @@ bool SQGrasping::serviceCallback(sq_grasping::getGrasps::Request &req, sq_graspi
 
 }
 
-visualization_msgs::MarkerArray SQGrasping::createGripperMarkerMoveIT(geometry_msgs::Pose pose, int id)
+visualization_msgs::MarkerArray SQGrasping::createGripperMarkerMoveIT(geometry_msgs::Pose pose, double opening_angle, int id)
 {
   std::string ee_name = ee_group_.getName();
   moveit::core::RobotModelConstPtr robot_model = ee_group_.getRobotModel();
@@ -241,7 +241,7 @@ visualization_msgs::MarkerArray SQGrasping::createGripperMarkerMoveIT(geometry_m
 
   //Setting the gripper joint to the openning value of the gripper
   const std::string ee_joint = "l_gripper_l_finger_joint";
-  double value = double(0.12);
+  double value = opening_angle;
   double *valuePtr = &value;
   robot_state_->setJointPositions(ee_joint, valuePtr);
   robot_state_->update();
@@ -270,7 +270,7 @@ visualization_msgs::MarkerArray SQGrasping::createGripperMarkerMoveIT(geometry_m
   tf::poseMsgToEigen(pose, grasp_tf);
   for(std::size_t i=0; i<ee_markers_map_[ee_jmp].markers.size();++i)
   {
-    ee_markers_map_[ee_jmp].markers[i].header.frame_id = "/base_link";
+    ee_markers_map_[ee_jmp].markers[i].header.frame_id = output_frame_;
     ee_markers_map_[ee_jmp].markers[i].type = visualization_msgs::Marker::MESH_RESOURCE;
     ee_markers_map_[ee_jmp].markers[i].mesh_use_embedded_materials = true;
     ee_markers_map_[ee_jmp].markers[i].id = ((i+5)*100*id)-id;

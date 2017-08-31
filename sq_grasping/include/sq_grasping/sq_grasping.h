@@ -33,7 +33,7 @@ private:
   void createGraspsMarkers(const grasp_execution::graspArr& grasps, visualization_msgs::MarkerArray& markers);
   void sampleSQFromSQS(const sq_fitting::sqArray &sqs);
   bool serviceCallback(sq_grasping::getGrasps::Request& req, sq_grasping::getGrasps::Response& res);
-  visualization_msgs::MarkerArray createGripperMarkerMoveIT(geometry_msgs::Pose pose, int id);
+  visualization_msgs::MarkerArray createGripperMarkerMoveIT(geometry_msgs::Pose pose, double opening_angle,int id);
 
   ros::ServiceServer service_;
   ros::ServiceClient client_;
