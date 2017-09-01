@@ -21,7 +21,7 @@ class SQGrasping
 public:
   SQGrasping(ros::NodeHandle& nh, const std::string& sq_topic, bool show_sq,
              bool show_grasp, const std::string output_frame, const std::string ee_group,
-             const std::string ee_grasp_link, const std::string ee_joint, const std::string arm_group);
+             const std::string ee_grasp_link, const std::string ee_joint, double ee_max_opening_angle, const std::string arm_group);
   ~SQGrasping();
   void runNode();
 
@@ -54,6 +54,7 @@ private:
   std::string arm_group_;
   std::string ee_name_;
   std::string ee_joint_;
+  double ee_max_opening_angle_;
 
   visualization_msgs::MarkerArray poses_arrow_;
   visualization_msgs::MarkerArray poses_;

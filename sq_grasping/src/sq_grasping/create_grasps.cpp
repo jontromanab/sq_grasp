@@ -5,8 +5,9 @@
 #include <eigen_conversions/eigen_msg.h>
 #include<tf/transform_listener.h>
 
-CreateGrasps::CreateGrasps(sq_fitting::sqArray sqArr, const std::string group,const std::string ee_name):
-  group_(group), ee_name_(ee_name)
+CreateGrasps::CreateGrasps(sq_fitting::sqArray sqArr, const std::string group,const std::string ee_name,
+                           double ee_max_opening_angle):
+  group_(group), ee_name_(ee_name), ee_max_opening_angle_(ee_max_opening_angle)
 {
   sqArr_ = sqArr;
   init_grasps_.grasps.resize(0);
@@ -126,7 +127,7 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   geometry_msgs::Pose orig_pose;
   tf::poseEigenToMsg(back_to_place1_trnsformed, orig_pose);
   gr_x_pos.pose = orig_pose;
-  gr_x_pos.angle = 0.22;
+  gr_x_pos.angle = sq.a2*10;
   grasps.push_back(gr_x_pos);
 
   //Second grasp in x direction
@@ -138,7 +139,7 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   geometry_msgs::Pose inverted_pose_x;
   tf::poseEigenToMsg(back_to_place2_trnsformed, inverted_pose_x);
   gr_x_neg.pose = inverted_pose_x;
-  gr_x_neg.angle = 0.0;
+  gr_x_neg.angle = sq.a2*10;
   grasps.push_back(gr_x_neg);
 
   //First grasp in Y direction
@@ -150,7 +151,7 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   geometry_msgs::Pose pose_y;
   tf::poseEigenToMsg(back_to_place3_trnsformed, pose_y);
   gr_y_pos.pose = pose_y;
-  gr_y_pos.angle = 0.12;
+  gr_y_pos.angle = sq.a1*10;
   grasps.push_back(gr_y_pos);
 
 
@@ -163,7 +164,7 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   geometry_msgs::Pose pose_inv_y;
   tf::poseEigenToMsg(back_to_place4_trnsformed, pose_inv_y);
   gr_y_neg.pose = pose_inv_y;
-  gr_y_neg.angle = 0.0;
+  gr_y_neg.angle = sq.a1*10;
   grasps.push_back(gr_y_neg);
 
 
@@ -176,7 +177,7 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   geometry_msgs::Pose pose_z;
   tf::poseEigenToMsg(back_to_place5_trnsformed, pose_z);
   gr_z_pos.pose = pose_z;
-  gr_z_pos.angle = 0.0;
+  gr_z_pos.angle = sq.a2*10;
   grasps.push_back(gr_z_pos);
 
   //Second grasp in Z direction
@@ -195,10 +196,18 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   grasp_execution::grasp gr_z_rot;
   geometry_msgs::Pose pose_z_rotated = rotatePose(pose_z, M_PI/2, 1,false);
   gr_z_rot.pose = pose_z_rotated;
-  gr_z_rot.angle = 0.22;
+  gr_z_rot.angle = sq.a1*10;
   grasps.push_back(gr_z_rot);
+}
 
+void CreateGrasps::filterGraspsByOpenningAngle(const sq_fitting::sq& sq, const std::vector<grasp_execution::grasp> &grasps_in, std::vector<grasp_execution::grasp> &grasps_out)
+{
 
+  for(int i=0;i<grasps_in.size();++i)
+  {
+    if(grasps_in[i].angle<ee_max_opening_angle_)
+      grasps_out.push_back(grasps_in[i]);
+  }
 }
 
 void CreateGrasps::sample_initial_grasps()
@@ -207,26 +216,15 @@ void CreateGrasps::sample_initial_grasps()
   init_grasps_.header.stamp = ros::Time::now();
   for(int i=0;i<sqArr_ .sqs.size();++i)
     {
-      std::vector<grasp_execution::grasp> grasps_vec;
-      createInitGrasps(sqArr_ .sqs[i], grasps_vec);
-      for (int j=0;j<grasps_vec.size();++j)
+      std::vector<grasp_execution::grasp> grasps_vec_init;
+      std::vector<grasp_execution::grasp> grasps_vec_filtered_by_angle;
+      createInitGrasps(sqArr_ .sqs[i], grasps_vec_init);
+      filterGraspsByOpenningAngle(sqArr_ .sqs[i], grasps_vec_init, grasps_vec_filtered_by_angle);
+      for (int j=0;j< grasps_vec_filtered_by_angle.size();++j)
       {
-        init_grasps_.grasps.push_back(grasps_vec[j]);
+        init_grasps_.grasps.push_back( grasps_vec_filtered_by_angle[j]);
       }
-      /*gr.pose = sqArr_ .sqs[i].pose;
-      gr.pose.position.z = sqArr_.sqs[i].pose.position.z + 0.14;
-      gr.pose.orientation.x = 0.639;
-      gr.pose.orientation.y = -0.326;
-      gr.pose.orientation.z = -0.616;
-      gr.pose.orientation.w = -0.327;
-      gr.angle = 0.79;
-      gr.approach.x = 0.0;
-      gr.approach.y = 0.0;
-      gr.approach.z = -1.0;*/
-
     }
-
-
 }
 
 void CreateGrasps::getGrasps(grasp_execution::graspArr &grasps)
