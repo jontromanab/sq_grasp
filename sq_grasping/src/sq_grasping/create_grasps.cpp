@@ -26,6 +26,46 @@ CreateGrasps::~CreateGrasps()
 
 }
 
+void sq_create_transform(const geometry_msgs::Pose& pose, Eigen::Affine3f& transform)
+{
+  transform = Eigen::Affine3f::Identity();
+  Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+  q.normalize();
+  transform.translation()<<pose.position.x, pose.position.y, pose.position.z;
+  transform.rotate(q);
+}
+
+
+void transformFrame(const std::string& input_frame, const std::string& output_frame, const geometry_msgs::Pose &pose_in, geometry_msgs::Pose &pose_out)
+{
+  tf::TransformListener listener;
+  tf::StampedTransform transform;
+    try
+    {
+      listener.waitForTransform(input_frame, output_frame, ros::Time(0), ros::Duration(3.0));
+      listener.lookupTransform(input_frame, output_frame, ros::Time(0), transform);
+      geometry_msgs::Pose inter_pose;
+      inter_pose.position.x = transform.getOrigin().x();
+      inter_pose.position.y = transform.getOrigin().y();
+      inter_pose.position.z = transform.getOrigin().z();
+      inter_pose.orientation.x = transform.getRotation().getX();
+      inter_pose.orientation.y = transform.getRotation().getY();
+      inter_pose.orientation.z = transform.getRotation().getZ();
+      inter_pose.orientation.w = transform.getRotation().getW();
+      Eigen::Affine3d transform_in_eigen;
+      tf::poseMsgToEigen(inter_pose, transform_in_eigen);
+      Eigen::Affine3f pose_in_eigen;
+      sq_create_transform(pose_in, pose_in_eigen);
+      tf::poseEigenToMsg( transform_in_eigen * pose_in_eigen.cast<double>(), pose_out );
+    }
+    catch(tf::TransformException ex)
+    {
+      ROS_ERROR("%s",ex.what());
+      ros::Duration(1.0).sleep();
+    }
+  }
+
+
 void CreateGrasps::createTransform(const std::string &grasp_frame)
 {
   tf::TransformListener listener;
@@ -220,7 +260,7 @@ void CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
   {
     geometry_msgs::PoseStamped q_stamped;
     q_stamped.header.frame_id = frame_id_ ;
-    q_stamped.pose =grasps_in[i].pose;
+    q_stamped.pose = grasps_in[i].pose;
     moveit_msgs::GetPositionIK srv;
     moveit_msgs::PositionIKRequest req;
     req.group_name = group_.getName();
@@ -228,9 +268,16 @@ void CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
     req.attempts = 10;
     req.timeout.fromSec(0.1);
     req.pose_stamped = q_stamped;
-    std::cout<<q_stamped.pose.position.x<<" "<<q_stamped.pose.position.y<<" "<<q_stamped.pose.position.z<<std::endl;
-    std::cout<<q_stamped.pose.orientation.x<<" "<<q_stamped.pose.orientation.y<<" "<<
-                q_stamped.pose.orientation.z<<" "<<q_stamped.pose.orientation.w<<std::endl;
+    
+    geometry_msgs::Pose trans_pose;
+    transformFrame("/odom_combined","/base_link",q_stamped.pose, trans_pose);
+    
+
+
+
+    std::cout<<trans_pose.position.x<<" "<<trans_pose.position.y<<" "<<trans_pose.position.z<<std::endl;
+    std::cout<<trans_pose.orientation.x<<" "<<trans_pose.orientation.y<<" "<<
+                trans_pose.orientation.z<<" "<<trans_pose.orientation.w<<std::endl;
     srv.request.ik_request = req;
     ros::NodeHandle nh;
     ros::ServiceClient client = nh.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
