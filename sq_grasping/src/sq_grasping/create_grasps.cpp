@@ -1,3 +1,4 @@
+#include <ros/ros.h>
 #include<sq_grasping/create_grasps.h>
 #include<tf2/LinearMath/Transform.h>
 #include<tf2/LinearMath/Quaternion.h>
@@ -5,15 +6,19 @@
 #include <eigen_conversions/eigen_msg.h>
 #include<tf/transform_listener.h>
 
-CreateGrasps::CreateGrasps(sq_fitting::sqArray sqArr, const std::string group,const std::string ee_name,
-                           double ee_max_opening_angle):
-  group_(group), ee_name_(ee_name), ee_max_opening_angle_(ee_max_opening_angle)
+#include<moveit_msgs/GetPositionIK.h>
+#include<moveit_msgs/PositionIKRequest.h>
+
+CreateGrasps::CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, const std::string group,const std::string ee_name,
+                           double ee_max_opening_angle): nh_(nh), group_(group),
+  ee_name_(ee_name), ee_max_opening_angle_(ee_max_opening_angle)
 {
   sqArr_ = sqArr;
   init_grasps_.grasps.resize(0);
   frame_id_ = sqArr_.header.frame_id;
+  std::cout<<"frame_id: "<<sqArr_.header.frame_id<<std::endl;
   createTransform(ee_name);
-
+  client_= nh_.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
 }
 
 CreateGrasps::~CreateGrasps()
@@ -202,11 +207,48 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
 
 void CreateGrasps::filterGraspsByOpenningAngle(const sq_fitting::sq& sq, const std::vector<grasp_execution::grasp> &grasps_in, std::vector<grasp_execution::grasp> &grasps_out)
 {
-
   for(int i=0;i<grasps_in.size();++i)
   {
     if(grasps_in[i].angle<ee_max_opening_angle_)
       grasps_out.push_back(grasps_in[i]);
+  }
+}
+
+void CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &grasps_in, std::vector<grasp_execution::grasp> &grasps_out)
+{
+  for(int i=0;i<grasps_in.size();++i)
+  {
+    geometry_msgs::PoseStamped q_stamped;
+    q_stamped.header.frame_id = frame_id_ ;
+    q_stamped.pose =grasps_in[i].pose;
+    moveit_msgs::GetPositionIK srv;
+    moveit_msgs::PositionIKRequest req;
+    req.group_name = group_.getName();
+    req.avoid_collisions = true;
+    req.attempts = 10;
+    req.timeout.fromSec(0.1);
+    req.pose_stamped = q_stamped;
+    std::cout<<q_stamped.pose.position.x<<" "<<q_stamped.pose.position.y<<" "<<q_stamped.pose.position.z<<std::endl;
+    std::cout<<q_stamped.pose.orientation.x<<" "<<q_stamped.pose.orientation.y<<" "<<
+                q_stamped.pose.orientation.z<<" "<<q_stamped.pose.orientation.w<<std::endl;
+    srv.request.ik_request = req;
+    ros::NodeHandle nh;
+    ros::ServiceClient client = nh.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
+    client.call(srv);
+    /*if(client.call(srv))
+    {
+      std::cout<<"OK.Succes"<<std::endl;
+      std::cout<<"Response is: "<<srv.response.error_code.val<<std::endl;
+    }
+    else
+    {
+      ROS_ERROR("Failed to call IK service");
+      //return 1;
+    }*/
+
+    if (srv.response.error_code.val == 1)
+        grasps_out.push_back(grasps_in[i]);
+
   }
 }
 
@@ -218,11 +260,17 @@ void CreateGrasps::sample_initial_grasps()
     {
       std::vector<grasp_execution::grasp> grasps_vec_init;
       std::vector<grasp_execution::grasp> grasps_vec_filtered_by_angle;
+      std::vector<grasp_execution::grasp> grasps_vec_filtered_by_ik;
       createInitGrasps(sqArr_ .sqs[i], grasps_vec_init);
+      std::cout<<">>>>>>>>>>>>For object: "<<i+1<<"<<<<<<<<<<<<"<<std::endl;
+      std::cout<<"After initial: "<<grasps_vec_init.size()<< "grasps"<<std::endl;
       filterGraspsByOpenningAngle(sqArr_ .sqs[i], grasps_vec_init, grasps_vec_filtered_by_angle);
-      for (int j=0;j< grasps_vec_filtered_by_angle.size();++j)
+      std::cout<<"After angle filtering: "<<grasps_vec_filtered_by_angle.size()<< "grasps"<<std::endl;
+      filterGraspsByIK(grasps_vec_filtered_by_angle, grasps_vec_filtered_by_ik);
+      std::cout<<"After Ik filtering: "<<grasps_vec_filtered_by_ik.size()<< "grasps"<<std::endl;
+      for (int j=0;j< grasps_vec_filtered_by_ik.size();++j)
       {
-        init_grasps_.grasps.push_back( grasps_vec_filtered_by_angle[j]);
+        init_grasps_.grasps.push_back( grasps_vec_filtered_by_ik[j]);
       }
     }
 }

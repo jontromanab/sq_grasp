@@ -13,12 +13,13 @@
 class CreateGrasps
 {
 public:
-  CreateGrasps(sq_fitting::sqArray sqArr, const std::string group,
+  CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, const std::string group,
                const std::string ee_name, double ee_max_opening_angle);
   ~CreateGrasps();
   void sample_initial_grasps();
   void getGrasps(grasp_execution::graspArr &grasps);
 private:
+  ros::NodeHandle nh_;
   sq_fitting::sqArray sqArr_;
   grasp_execution::graspArr init_grasps_;
   std::string frame_id_;
@@ -33,11 +34,15 @@ private:
   void filterGraspsByOpenningAngle(const sq_fitting::sq& sq,const std::vector<grasp_execution::grasp>& grasps_in,
                                    std::vector<grasp_execution::grasp>& grasps_out);
 
+  void filterGraspsByIK(const std::vector<grasp_execution::grasp>& grasps_in,
+                        std::vector<grasp_execution::grasp>& grasps_out);
+
   void createTransform(const std::string& grasp_frame);
   void TransformPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
   moveit::planning_interface::MoveGroup group_;
   double ee_max_opening_angle_;
+  ros::ServiceClient client_;
 
 
 

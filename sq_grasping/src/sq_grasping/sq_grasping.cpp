@@ -23,7 +23,7 @@ SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic, bool sh
     ee_max_opening_angle_(ee_max_opening_angle), arm_group_(arm_group)
 {
   //calling sq_ server and creating sq_grasp server
-  client_ = nh.serviceClient<sq_fitting::get_sq>(sq_topic);
+  client_ = nh_.serviceClient<sq_fitting::get_sq>(sq_topic);
   service_ = nh_.advertiseService("grasps", &SQGrasping::serviceCallback, this);
   superquadrics_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("sq",10);
   grasp_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("grasps",10);
@@ -157,6 +157,7 @@ void SQGrasping::createGraspsMarkers(const grasp_execution::graspArr &grasps, vi
 void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::graspArr& gs)
 {
   sq_fitting::sqArray new_sqArr;
+  std::cout<<"Header before: "<<sqs.header.frame_id<<std::endl;
   new_sqArr.header.frame_id = output_frame_;
   new_sqArr.header.stamp = ros::Time::now();
   for (int i=0;i<sqs.sqs.size();++i)
@@ -177,8 +178,9 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
       new_sq.e2 = sqs.sqs[i].e2;
       new_sqArr.sqs.push_back(new_sq);
   }
+  std::cout<<"Header after: "<<new_sqArr.header.frame_id<<std::endl;
   sampleSQFromSQS(new_sqArr);
-  CreateGrasps* create = new CreateGrasps(new_sqArr, arm_group_,ee_grasp_link_, ee_max_opening_angle_);
+  CreateGrasps* create = new CreateGrasps(nh_,new_sqArr, arm_group_,ee_grasp_link_, ee_max_opening_angle_);
   create->sample_initial_grasps();
   grasp_execution::graspArr grasps;
   create->getGrasps(grasps);
