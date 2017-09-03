@@ -16,7 +16,7 @@ public:
   CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, const std::string group,
                const std::string ee_name, double ee_max_opening_angle, double approach_value);
   ~CreateGrasps();
-  void sample_initial_grasps();
+  void sample_grasps();
   void getGrasps(grasp_execution::graspArr &grasps);
 private:
   ros::NodeHandle nh_;
@@ -27,25 +27,31 @@ private:
 
   Eigen::Affine3d transform_;
 
+  bool findGraspFromSQ(const sq_fitting::sq& sq, std::vector<grasp_execution::grasp>& grasps);
+
   void findApproachPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
   void findApproachPoseFromDir(const geometry_msgs::Pose& pose_in, const geometry_msgs::Vector3& dir,
                                geometry_msgs::Pose& pose_out);
 
-  void findDirectionVector(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2,
+  void findDirectionVectorfromApproachPose(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2,
                            geometry_msgs::Vector3& direction);
+
+  void findDirection(const geometry_msgs::Pose& pose, geometry_msgs::Vector3& dir);
 
   void createInitGrasps(const sq_fitting::sq& sq,
                         std::vector<grasp_execution::grasp>& grasps);
 
-  void filterGraspsByOpenningAngle(const sq_fitting::sq& sq,const std::vector<grasp_execution::grasp>& grasps_in,
+  void filterGraspsByOpenningAngle(const std::vector<grasp_execution::grasp>& grasps_in,
                                    std::vector<grasp_execution::grasp>& grasps_out);
 
-  void filterGraspsByIK(const std::vector<grasp_execution::grasp>& grasps_in,
+  bool filterGraspsByIK(const std::vector<grasp_execution::grasp>& grasps_in,
                         std::vector<grasp_execution::grasp>& grasps_out);
 
   void createTransform(const std::string& grasp_frame);
   void TransformPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
+
+  bool isGraspReachable(const grasp_execution::grasp grasp);
 
   moveit::planning_interface::MoveGroup group_;
   double ee_max_opening_angle_;

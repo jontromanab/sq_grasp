@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(sq_grasping)
 
+add_compile_options(-std=c++11)
+add_compile_options(-std=gnu++11)
+add_compile_options(-fext-numeric-literals)
 
 find_package(catkin REQUIRED COMPONENTS
     sq_fitting

@@ -14,6 +14,6 @@
 
         <!--Manipulator params-->
         <param name="arm_group" value="left_arm"/>
-        <param name="approach_value" value="0.1"/>
+        <param name="approach_value" value="0.2"/>
    </node>
 </launch>

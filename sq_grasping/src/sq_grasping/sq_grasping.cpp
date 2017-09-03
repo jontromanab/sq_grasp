@@ -183,7 +183,7 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
   std::cout<<"Header after: "<<new_sqArr.header.frame_id<<std::endl;
   sampleSQFromSQS(new_sqArr);
   CreateGrasps* create = new CreateGrasps(nh_,new_sqArr, arm_group_,ee_grasp_link_, ee_max_opening_angle_,approach_value_);
-  create->sample_initial_grasps();
+  create->sample_grasps();
   grasp_execution::graspArr grasps;
   create->getGrasps(grasps);
   delete create;

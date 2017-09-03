@@ -27,6 +27,43 @@ CreateGrasps::~CreateGrasps()
 
 }
 
+bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, std::vector<grasp_execution::grasp>& grasps)
+{
+  grasps.resize(0);
+  //First we create Initial 6 grasps from major axes. +x, -x, +y, -y, +z, z_rot
+  std::vector<grasp_execution::grasp> initial_grasps;
+  createInitGrasps(sq, initial_grasps);
+  std::cout<<"Initial grasps size: "<<initial_grasps.size()<<std::endl;
+  //We filter grasps angles are more than max gripper openning angle
+  std::vector<grasp_execution::grasp> grasps_filtered_by_angle;
+  filterGraspsByOpenningAngle(initial_grasps, grasps_filtered_by_angle);
+  if(grasps_filtered_by_angle.size()==0)
+    return false;
+  std::cout<<"Grasps filtered by angle size: "<<grasps_filtered_by_angle.size()<<std::endl;
+  //We create approach poses for every grasp. If the original pose and approach pose both have IK solutions,
+  // then only this grasp can proceed
+  std::vector<grasp_execution::grasp> grasps_filtered_by_IK;
+  grasps_filtered_by_IK.resize(0);
+  for(int i=0;i<grasps_filtered_by_angle.size();++i)
+  {
+    if(isGraspReachable(grasps_filtered_by_angle[i]))
+      grasps_filtered_by_IK.push_back(grasps_filtered_by_angle[i]);
+  }
+
+  std::cout<<"Grasps filtered by IK: "<<grasps_filtered_by_IK.size()<<std::endl;
+  if(grasps_filtered_by_IK.size()>0)
+    for(int i=0;i<grasps_filtered_by_IK.size();++i)
+      grasps.push_back(grasps_filtered_by_IK[i]);
+
+  if(grasps.size()>0)
+    return true;
+  else
+    return false;
+
+}
+
+
+
 void sq_create_transform(const geometry_msgs::Pose& pose, Eigen::Affine3f& transform)
 {
   transform = Eigen::Affine3f::Identity();
@@ -35,7 +72,6 @@ void sq_create_transform(const geometry_msgs::Pose& pose, Eigen::Affine3f& trans
   transform.translation()<<pose.position.x, pose.position.y, pose.position.z;
   transform.rotate(q);
 }
-
 
 void transformFrame(const std::string& input_frame, const std::string& output_frame, const geometry_msgs::Pose &pose_in, geometry_msgs::Pose &pose_out)
 {
@@ -65,7 +101,6 @@ void transformFrame(const std::string& input_frame, const std::string& output_fr
       ros::Duration(1.0).sleep();
     }
   }
-
 
 void CreateGrasps::createTransform(const std::string &grasp_frame)
 {
@@ -156,7 +191,7 @@ geometry_msgs::Pose rotatePose(const geometry_msgs::Pose pose, double value, int
   return new_pose;
 }
 
- void CreateGrasps::findApproachPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out)
+void CreateGrasps::findApproachPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out)
 {
   Eigen::Affine3d pose_in_eigen;
   tf::poseMsgToEigen(pose_in, pose_in_eigen);
@@ -169,11 +204,18 @@ geometry_msgs::Pose rotatePose(const geometry_msgs::Pose pose, double value, int
   tf::poseEigenToMsg(back_to_world, pose_out);
 }
 
-void CreateGrasps::findDirectionVector(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2, geometry_msgs::Vector3 &direction)
+void CreateGrasps::findDirectionVectorfromApproachPose(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2, geometry_msgs::Vector3 &direction)
 {
   direction.x = pose2.position.x - pose1.position.x;
   direction.y = pose2.position.y - pose1.position.y;
   direction.z = pose2.position.z - pose1.position.z;
+}
+
+void CreateGrasps::findDirection(const geometry_msgs::Pose &pose, geometry_msgs::Vector3 &dir)
+{
+  geometry_msgs::Pose approach_pose;
+  findApproachPose(pose, approach_pose);
+  findDirectionVectorfromApproachPose(pose, approach_pose, dir);
 }
 
 void CreateGrasps::findApproachPoseFromDir(const geometry_msgs::Pose &pose_in, const geometry_msgs::Vector3 &dir, geometry_msgs::Pose &pose_out)
@@ -183,7 +225,6 @@ void CreateGrasps::findApproachPoseFromDir(const geometry_msgs::Pose &pose_in, c
   pose_out.position.y = pose_in.position.y + dir.y;
   pose_out.position.z = pose_in.position.z + dir.z;
 }
-
 
 void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_execution::grasp>& grasps)
 {
@@ -205,17 +246,17 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   gr_x_pos.angle = sq.a2*10;
   grasps.push_back(gr_x_pos);
   //Approach pose for +x
-  geometry_msgs::Pose orig_pose_approach;
+  /*geometry_msgs::Pose orig_pose_approach;
   findApproachPose(orig_pose, orig_pose_approach);
   grasp_execution::grasp gr_x_pos_approach;
   gr_x_pos_approach.pose = orig_pose_approach;
   gr_x_pos_approach.angle = gr_x_pos.angle;
-  grasps.push_back(gr_x_pos_approach);
+  grasps.push_back(gr_x_pos_approach);*/
 
 
 
   //Second grasp in x direction
-  /*grasp_execution::grasp gr_x_neg;
+  grasp_execution::grasp gr_x_neg;
   Eigen::Affine3d transformation_mat_x =  create_transformation_matrix(sq.a1, 0, 0, 0, 0, M_PI);
   Eigen::Affine3d pose_in_center_inv_x = pose_in_center * transformation_mat_x;
   Eigen::Affine3d back_to_place2 = pose_in_eigen * pose_in_center_inv_x ;
@@ -277,12 +318,12 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   tf::poseEigenToMsg(back_to_place6_trnsformed, pose_inv_z);
   poses.push_back(pose_inv_z);*/
 
-  /*grasp_execution::grasp gr_z_rot;
+  grasp_execution::grasp gr_z_rot;
   geometry_msgs::Pose pose_z_rotated = rotatePose(pose_z, M_PI/2, 1,false);
   gr_z_rot.pose = pose_z_rotated;
   gr_z_rot.angle = sq.a1*10;
   grasps.push_back(gr_z_rot);
-  geometry_msgs::Pose pose_z_rotated_approach;
+  /*geometry_msgs::Pose pose_z_rotated_approach;
   findApproachPose(pose_z_rotated, pose_z_rotated_approach);
   grasp_execution::grasp gr_z_rot_approach;
   gr_z_rot_approach.pose = pose_z_rotated_approach;
@@ -290,7 +331,7 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   grasps.push_back(gr_z_rot_approach);*/
 }
 
-void CreateGrasps::filterGraspsByOpenningAngle(const sq_fitting::sq& sq, const std::vector<grasp_execution::grasp> &grasps_in, std::vector<grasp_execution::grasp> &grasps_out)
+void CreateGrasps::filterGraspsByOpenningAngle(const std::vector<grasp_execution::grasp> &grasps_in, std::vector<grasp_execution::grasp> &grasps_out)
 {
   for(int i=0;i<grasps_in.size();++i)
   {
@@ -299,14 +340,22 @@ void CreateGrasps::filterGraspsByOpenningAngle(const sq_fitting::sq& sq, const s
   }
 }
 
-void CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &grasps_in, std::vector<grasp_execution::grasp> &grasps_out)
+bool CreateGrasps::isGraspReachable(const grasp_execution::grasp grasp)
 {
-  for(int i=0;i<grasps_in.size();++i)
+  std::vector<geometry_msgs::Pose> poses;
+  poses.push_back(grasp.pose);
+  geometry_msgs::Pose approach_pose;
+  findApproachPose(grasp.pose, approach_pose);
+  poses.push_back(approach_pose);
+  ros::NodeHandle nh;
+  ros::ServiceClient client = nh.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
+  std::vector<bool> results(2, false);
+  for (int i=0;i<poses.size();++i)
   {
     geometry_msgs::PoseStamped q_stamped;
     q_stamped.header.frame_id = frame_id_ ;
     geometry_msgs::Pose trans_pose;
-    transformFrame(group_.getPlanningFrame(),frame_id_,grasps_in[i].pose, trans_pose);
+    transformFrame(group_.getPlanningFrame(),frame_id_,poses[i], trans_pose);
     q_stamped.pose = trans_pose;
     moveit_msgs::GetPositionIK srv;
     moveit_msgs::PositionIKRequest req;
@@ -315,14 +364,67 @@ void CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
     req.attempts = 10;
     req.timeout.fromSec(0.1);
     req.pose_stamped = q_stamped;
-       
-    std::cout<<trans_pose.position.x<<" "<<trans_pose.position.y<<" "<<trans_pose.position.z<<std::endl;
-    std::cout<<trans_pose.orientation.x<<" "<<trans_pose.orientation.y<<" "<<
-                trans_pose.orientation.z<<" "<<trans_pose.orientation.w<<std::endl;
     srv.request.ik_request = req;
-    ros::NodeHandle nh;
-    ros::ServiceClient client = nh.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
     client.call(srv);
+    if (srv.response.error_code.val == 1)
+      results[i] = true;
+   }
+ if (std::all_of(std::begin(results),std::end(results),[](bool i){return i;})){return true;}
+ else
+   return false;
+}
+
+bool CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &grasps_in, std::vector<grasp_execution::grasp> &grasps_out)
+{
+  grasps_out.resize(0);
+  ros::NodeHandle nh;
+  ros::ServiceClient client = nh.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
+  std::vector<geometry_msgs::Pose> poses;
+  for (int i=0;i<grasps_in.size();++i)
+  {
+    poses.push_back(grasps_in[i].pose);
+    geometry_msgs::Pose approach_pose;
+    findApproachPose(grasps_in[i].pose, approach_pose);
+    poses.push_back(approach_pose);
+  }
+
+  for(int i=0;i<poses.size();i+=2)
+  {
+    std::cout<<"Loop "<<i<<std::endl;
+    geometry_msgs::PoseStamped q_stamped;
+    q_stamped.header.frame_id = frame_id_ ;
+    geometry_msgs::Pose trans_pose;
+    transformFrame(group_.getPlanningFrame(),frame_id_,poses[i], trans_pose);
+    q_stamped.pose = trans_pose;
+    moveit_msgs::GetPositionIK srv;
+    moveit_msgs::PositionIKRequest req;
+    req.group_name = group_.getName();
+    req.avoid_collisions = true;
+    req.attempts = 10;
+    req.timeout.fromSec(0.1);
+    req.pose_stamped = q_stamped;
+
+    geometry_msgs::PoseStamped q_stamped1;
+    q_stamped1.header.frame_id = frame_id_ ;
+    geometry_msgs::Pose trans_pose1;
+    transformFrame(group_.getPlanningFrame(),frame_id_,poses[i+1], trans_pose1);
+    q_stamped1.pose = trans_pose1;
+    moveit_msgs::GetPositionIK srv1;
+    moveit_msgs::PositionIKRequest req1;
+    req1.group_name = group_.getName();
+    req1.avoid_collisions = true;
+    req1.attempts = 10;
+    req1.timeout.fromSec(0.1);
+    req1.pose_stamped = q_stamped1;
+       
+    //std::cout<<trans_pose.position.x<<" "<<trans_pose.position.y<<" "<<trans_pose.position.z<<std::endl;
+    //std::cout<<trans_pose.orientation.x<<" "<<trans_pose.orientation.y<<" "<<
+               // trans_pose.orientation.z<<" "<<trans_pose.orientation.w<<std::endl;
+    srv.request.ik_request = req;
+    srv1.request.ik_request = req1;
+
+    client.call(srv);
+    client.call(srv1);
     /*if(client.call(srv))
     {
       std::cout<<"OK.Succes"<<std::endl;
@@ -334,32 +436,27 @@ void CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
       //return 1;
     }*/
 
-    if (srv.response.error_code.val == 1)
+    if (srv.response.error_code.val == 1 && srv1.response.error_code.val==1)
         grasps_out.push_back(grasps_in[i]);
 
   }
+  if(grasps_out.size()>0)
+    return true;
+  else
+    return false;
 }
 
-void CreateGrasps::sample_initial_grasps()
+void CreateGrasps::sample_grasps()
 {
   init_grasps_.header.frame_id = frame_id_;
   init_grasps_.header.stamp = ros::Time::now();
   for(int i=0;i<sqArr_ .sqs.size();++i)
     {
-      std::vector<grasp_execution::grasp> grasps_vec_init;
-      std::vector<grasp_execution::grasp> grasps_vec_filtered_by_angle;
-      std::vector<grasp_execution::grasp> grasps_vec_filtered_by_ik;
-      createInitGrasps(sqArr_ .sqs[i], grasps_vec_init);
-      std::cout<<">>>>>>>>>>>>For object: "<<i+1<<"<<<<<<<<<<<<"<<std::endl;
-      std::cout<<"After initial: "<<grasps_vec_init.size()<< "grasps"<<std::endl;
-      filterGraspsByOpenningAngle(sqArr_ .sqs[i], grasps_vec_init, grasps_vec_filtered_by_angle);
-      std::cout<<"After angle filtering: "<<grasps_vec_filtered_by_angle.size()<< "grasps"<<std::endl;
-      //filterGraspsByIK(grasps_vec_filtered_by_angle, grasps_vec_filtered_by_ik);
-      //std::cout<<"After Ik filtering: "<<grasps_vec_filtered_by_ik.size()<< "grasps"<<std::endl;
-      for (int j=0;j< grasps_vec_filtered_by_angle.size();++j)
-      {
-        init_grasps_.grasps.push_back( grasps_vec_filtered_by_angle[j]);
-      }
+      std::cout<<">>>>>>>>>>>>For object: "<<i+1<<" <<<<<<<<<<<<"<<std::endl;
+      std::vector<grasp_execution::grasp> gr;
+      if(findGraspFromSQ(sqArr_.sqs[i], gr))
+        for(int i=0;i<gr.size();++i)
+          init_grasps_.grasps.push_back(gr[i]);
     }
 }
 
