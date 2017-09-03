@@ -27,6 +27,13 @@ private:
 
   Eigen::Affine3d transform_;
 
+  void findApproachPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
+
+  void findApproachPoseFromDir(const geometry_msgs::Pose& pose_in, const geometry_msgs::Vector3& dir,
+                               geometry_msgs::Pose& pose_out);
+
+  void findDirectionVector(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2,
+                           geometry_msgs::Vector3& direction);
 
   void createInitGrasps(const sq_fitting::sq& sq,
                         std::vector<grasp_execution::grasp>& grasps);
