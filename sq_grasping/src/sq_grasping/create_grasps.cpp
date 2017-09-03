@@ -10,8 +10,9 @@
 #include<moveit_msgs/PositionIKRequest.h>
 
 CreateGrasps::CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, const std::string group,const std::string ee_name,
-                           double ee_max_opening_angle): nh_(nh), group_(group),
-  ee_name_(ee_name), ee_max_opening_angle_(ee_max_opening_angle)
+                           double ee_max_opening_angle, double approach_value): nh_(nh), group_(group),
+  ee_name_(ee_name), ee_max_opening_angle_(ee_max_opening_angle),
+  approach_value_(approach_value)
 {
   sqArr_ = sqArr;
   init_grasps_.grasps.resize(0);
@@ -162,7 +163,7 @@ geometry_msgs::Pose rotatePose(const geometry_msgs::Pose pose, double value, int
   Eigen::Affine3d pose_inv = pose_in_eigen.inverse();
   Eigen::Affine3d pose_in_center = pose_in_eigen * pose_inv;
 
-  Eigen::Affine3d translation_matrix(Eigen::Translation3d(Eigen::Vector3d(-0.2, 0, 0)));
+  Eigen::Affine3d translation_matrix(Eigen::Translation3d(Eigen::Vector3d(-approach_value_, 0, 0)));
   Eigen::Affine3d translated_approach = translation_matrix * pose_in_center;
   Eigen::Affine3d back_to_world = pose_in_eigen * translated_approach;
   tf::poseEigenToMsg(back_to_world, pose_out);

@@ -16,11 +16,13 @@
 
 SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic, bool show_sq, bool show_grasp,
                        const std::string output_frame, const std::string ee_group,const std::string ee_grasp_link,
-                       const std::string ee_joint, double ee_max_opening_angle, const std::string arm_group)
+                       const std::string ee_joint, double ee_max_opening_angle, const std::string arm_group,
+                       double approach_value)
   :nh_(nh), spinner(1) ,show_sq_(show_sq), show_grasp_(show_grasp),
     output_frame_(output_frame), ee_group_(ee_group),
     ee_grasp_link_(ee_grasp_link), ee_joint_(ee_joint),
-    ee_max_opening_angle_(ee_max_opening_angle), arm_group_(arm_group)
+    ee_max_opening_angle_(ee_max_opening_angle), arm_group_(arm_group),
+    approach_value_(approach_value)
 {
   //calling sq_ server and creating sq_grasp server
   client_ = nh_.serviceClient<sq_fitting::get_sq>(sq_topic);
@@ -180,7 +182,7 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
   }
   std::cout<<"Header after: "<<new_sqArr.header.frame_id<<std::endl;
   sampleSQFromSQS(new_sqArr);
-  CreateGrasps* create = new CreateGrasps(nh_,new_sqArr, arm_group_,ee_grasp_link_, ee_max_opening_angle_);
+  CreateGrasps* create = new CreateGrasps(nh_,new_sqArr, arm_group_,ee_grasp_link_, ee_max_opening_angle_,approach_value_);
   create->sample_initial_grasps();
   grasp_execution::graspArr grasps;
   create->getGrasps(grasps);

@@ -14,7 +14,7 @@ class CreateGrasps
 {
 public:
   CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, const std::string group,
-               const std::string ee_name, double ee_max_opening_angle);
+               const std::string ee_name, double ee_max_opening_angle, double approach_value);
   ~CreateGrasps();
   void sample_initial_grasps();
   void getGrasps(grasp_execution::graspArr &grasps);
@@ -49,6 +49,7 @@ private:
 
   moveit::planning_interface::MoveGroup group_;
   double ee_max_opening_angle_;
+  double approach_value_;
   ros::ServiceClient client_;
 
 
