@@ -168,6 +168,20 @@ geometry_msgs::Pose rotatePose(const geometry_msgs::Pose pose, double value, int
   tf::poseEigenToMsg(back_to_world, pose_out);
 }
 
+void CreateGrasps::findDirectionVector(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2, geometry_msgs::Vector3 &direction)
+{
+  direction.x = pose2.position.x - pose1.position.x;
+  direction.y = pose2.position.y - pose1.position.y;
+  direction.z = pose2.position.z - pose1.position.z;
+}
+
+void CreateGrasps::findApproachPoseFromDir(const geometry_msgs::Pose &pose_in, const geometry_msgs::Vector3 &dir, geometry_msgs::Pose &pose_out)
+{
+  pose_out.orientation = pose_in.orientation;
+  pose_out.position.x = pose_in.position.x + dir.x;
+  pose_out.position.y = pose_in.position.y + dir.y;
+  pose_out.position.z = pose_in.position.z + dir.z;
+}
 
 
 void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_execution::grasp>& grasps)
