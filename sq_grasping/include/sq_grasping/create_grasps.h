@@ -5,15 +5,20 @@
 #include<grasp_execution/graspArr.h>
 #include<geometry_msgs/Pose.h>
 #include<moveit/move_group_interface/move_group.h>
+#include<sensor_msgs/PointCloud2.h>
 
 #include<tf/transform_listener.h>
 #include <Eigen/Eigen>
 #include <eigen_conversions/eigen_msg.h>
+#include<moveit_msgs/PlanningScene.h>
+#include<moveit_msgs/ApplyPlanningScene.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+
 
 class CreateGrasps
 {
 public:
-  CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, const std::string group,
+  CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, geometry_msgs::Vector3 table_center, const std::string group,
                const std::string ee_name, double ee_max_opening_angle, double approach_value);
   ~CreateGrasps();
   void sample_grasps();
@@ -52,12 +57,16 @@ private:
   void TransformPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
   bool isGraspReachable(const grasp_execution::grasp grasp);
+  //void getTable(const sensor_msgs::PointCloud2ConstPtr &table_msg);
 
-  moveit::planning_interface::MoveGroup group_;
+  std::string group_name_;
+  boost::scoped_ptr<moveit::planning_interface::MoveGroup> group_;
   double ee_max_opening_angle_;
   double approach_value_;
   ros::ServiceClient client_;
-
+  ros::AsyncSpinner spinner;
+  boost::scoped_ptr<moveit::planning_interface::PlanningSceneInterface> planning_scene_interface_;
+  geometry_msgs::Vector3 table_center_;
 
 
 };

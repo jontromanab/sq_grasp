@@ -5,21 +5,37 @@
 #include <Eigen/Eigen>
 #include <eigen_conversions/eigen_msg.h>
 #include<tf/transform_listener.h>
+#include<sq_fitting/utils.h>
+#include<pcl/point_cloud.h>
+#include<pcl/point_types.h>
+#include<pcl_conversions/pcl_conversions.h>
 
 #include<moveit_msgs/GetPositionIK.h>
 #include<moveit_msgs/PositionIKRequest.h>
 
-CreateGrasps::CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, const std::string group,const std::string ee_name,
-                           double ee_max_opening_angle, double approach_value): nh_(nh), group_(group),
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/CollisionObject.h>
+
+CreateGrasps::CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, geometry_msgs::Vector3 table_center,
+                           const std::string group,const std::string ee_name,
+                           double ee_max_opening_angle, double approach_value): nh_(nh),spinner(1), group_name_(group),
   ee_name_(ee_name), ee_max_opening_angle_(ee_max_opening_angle),
   approach_value_(approach_value)
 {
   sqArr_ = sqArr;
+  table_center_ = table_center;
   init_grasps_.grasps.resize(0);
   frame_id_ = sqArr_.header.frame_id;
   std::cout<<"frame_id: "<<sqArr_.header.frame_id<<std::endl;
+  group_.reset(new moveit::planning_interface::MoveGroup(group_name_));
+  spinner.start();
+  planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
   createTransform(ee_name);
-  client_= nh_.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
+  //client_= nh_.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
+
+  
+
 }
 
 CreateGrasps::~CreateGrasps()
@@ -34,7 +50,7 @@ bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, std::vector<grasp_e
   std::vector<grasp_execution::grasp> initial_grasps;
   createInitGrasps(sq, initial_grasps);
   std::cout<<"Initial grasps size: "<<initial_grasps.size()<<std::endl;
-  //We filter grasps angles are more than max gripper openning angle
+  //We filter grasps whose angles are more than max gripper openning angle
   std::vector<grasp_execution::grasp> grasps_filtered_by_angle;
   filterGraspsByOpenningAngle(initial_grasps, grasps_filtered_by_angle);
   if(grasps_filtered_by_angle.size()==0)
@@ -106,7 +122,7 @@ void CreateGrasps::createTransform(const std::string &grasp_frame)
 {
   tf::TransformListener listener;
   tf::StampedTransform transform;
-  std::string planning_frame = group_.getEndEffectorLink();
+  std::string planning_frame = group_->getEndEffectorLink();
   try
   {
     listener.waitForTransform(grasp_frame, planning_frame, ros::Time(0), ros::Duration(3.0));
@@ -355,11 +371,11 @@ bool CreateGrasps::isGraspReachable(const grasp_execution::grasp grasp)
     geometry_msgs::PoseStamped q_stamped;
     q_stamped.header.frame_id = frame_id_ ;
     geometry_msgs::Pose trans_pose;
-    transformFrame(group_.getPlanningFrame(),frame_id_,poses[i], trans_pose);
+    transformFrame(group_->getPlanningFrame(),frame_id_,poses[i], trans_pose);
     q_stamped.pose = trans_pose;
     moveit_msgs::GetPositionIK srv;
     moveit_msgs::PositionIKRequest req;
-    req.group_name = group_.getName();
+    req.group_name = group_->getName();
     req.avoid_collisions = true;
     req.attempts = 10;
     req.timeout.fromSec(0.1);
@@ -394,11 +410,11 @@ bool CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
     geometry_msgs::PoseStamped q_stamped;
     q_stamped.header.frame_id = frame_id_ ;
     geometry_msgs::Pose trans_pose;
-    transformFrame(group_.getPlanningFrame(),frame_id_,poses[i], trans_pose);
+    transformFrame(group_->getPlanningFrame(),frame_id_,poses[i], trans_pose);
     q_stamped.pose = trans_pose;
     moveit_msgs::GetPositionIK srv;
     moveit_msgs::PositionIKRequest req;
-    req.group_name = group_.getName();
+    req.group_name = group_->getName();
     req.avoid_collisions = true;
     req.attempts = 10;
     req.timeout.fromSec(0.1);
@@ -407,11 +423,11 @@ bool CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
     geometry_msgs::PoseStamped q_stamped1;
     q_stamped1.header.frame_id = frame_id_ ;
     geometry_msgs::Pose trans_pose1;
-    transformFrame(group_.getPlanningFrame(),frame_id_,poses[i+1], trans_pose1);
+    transformFrame(group_->getPlanningFrame(),frame_id_,poses[i+1], trans_pose1);
     q_stamped1.pose = trans_pose1;
     moveit_msgs::GetPositionIK srv1;
     moveit_msgs::PositionIKRequest req1;
-    req1.group_name = group_.getName();
+    req1.group_name = group_->getName();
     req1.avoid_collisions = true;
     req1.attempts = 10;
     req1.timeout.fromSec(0.1);
@@ -448,6 +464,38 @@ bool CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
 
 void CreateGrasps::sample_grasps()
 {
+  moveit_msgs::CollisionObject collision_object;
+  collision_object.header.frame_id = frame_id_;
+  collision_object.id = "table";
+
+  /* Define a table to add to the world. */
+  shape_msgs::SolidPrimitive primitive;
+  primitive.type = primitive.BOX;
+  primitive.dimensions.resize(3);
+  primitive.dimensions[0] = 1.0;
+  primitive.dimensions[1] = 1.5;
+  primitive.dimensions[2] = 0.005;
+
+  /* A pose for the box (specified relative to frame_id) */
+  geometry_msgs::Pose box_pose;
+  box_pose.orientation.w = 1.0;
+  box_pose.position.x =  table_center_.x;
+  box_pose.position.y = table_center_.y;
+  box_pose.position.z =  table_center_.z;
+
+  collision_object.primitives.push_back(primitive);
+  collision_object.primitive_poses.push_back(box_pose);
+  collision_object.operation = collision_object.ADD;
+
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
+  collision_objects.push_back(collision_object);
+
+  // Now, let's add the collision object into the world
+  ROS_INFO("Add table into the world");
+  planning_scene_interface_->addCollisionObjects(collision_objects);
+  sleep(1.0);
+
+  
   init_grasps_.header.frame_id = frame_id_;
   init_grasps_.header.stamp = ros::Time::now();
   for(int i=0;i<sqArr_ .sqs.size();++i)
@@ -458,6 +506,13 @@ void CreateGrasps::sample_grasps()
         for(int i=0;i<gr.size();++i)
           init_grasps_.grasps.push_back(gr[i]);
     }
+
+  // Now, let's remove the collision object from the world.
+  ROS_INFO("Remove the object from the world");
+  std::vector<std::string> object_ids;
+  object_ids.push_back(collision_object.id);
+  planning_scene_interface_->removeCollisionObjects(object_ids);
+  sleep(1.0);
 }
 
 void CreateGrasps::getGrasps(grasp_execution::graspArr &grasps)

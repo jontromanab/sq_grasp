@@ -49,7 +49,10 @@ bool SQFitter::serviceCallback(sq_fitting::get_sq::Request &req, sq_fitting::get
   std::cout<<"Service callback started"<<std::endl;
   std::cout<<"Request received to send back SQ"<<std::endl;
   res.sqs = sqArr_;
+  res.table_center = table_center_;
   std::cout<<"Sending back: "<<sqArr_.sqs.size()<<" superquadrics";
+  std::cout<<"Table center: "<<table_center_.x <<" "<<table_center_.y<<" "
+          <<table_center_.z<<std::endl;
 }
 
 void SQFitter::cloud_callback(const sensor_msgs::PointCloud2ConstPtr &input)
@@ -297,6 +300,15 @@ void SQFitter::getSegmentedObjectsIRI(CloudPtr &cloud)
   {
     table_cloud_ = srv.response.plane_cloud;
     std::cout<<"Points in table cloud"<<table_cloud_.data.size()<<std::endl;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr table_cloud_pcl(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr table_cloud_pcl_trns(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::fromROSMsg(table_cloud_, *table_cloud_pcl);
+    transformFrameCloud(table_cloud_pcl, table_cloud_pcl_trns);
+    double x, y,z;
+    getCenter(table_cloud_pcl_trns, x, y, z);
+    table_center_.x = x;
+    table_center_.y = y;
+    table_center_.z = z;
     std::cout<<"We found : "<<srv.response.objects.objects.size()<<" objects"<<std::endl;
     segmented_objects_cloud_->points.resize(0);
     cut_cloud_->points.resize(0);

@@ -62,6 +62,7 @@ private:
   visualization_msgs::MarkerArray poses_;
   moveit::planning_interface::MoveGroup ee_group_;
   ros::AsyncSpinner spinner;
+  geometry_msgs::Vector3 table_center_;
 
 
 

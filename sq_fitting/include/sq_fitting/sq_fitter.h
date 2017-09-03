@@ -96,6 +96,7 @@ private:
   bool initialized;
   std::string output_frame_;
   ros::ServiceServer service_;
+  geometry_msgs::Vector3 table_center_;
 
 };
 

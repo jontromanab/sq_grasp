@@ -182,7 +182,9 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
   }
   std::cout<<"Header after: "<<new_sqArr.header.frame_id<<std::endl;
   sampleSQFromSQS(new_sqArr);
-  CreateGrasps* create = new CreateGrasps(nh_,new_sqArr, arm_group_,ee_grasp_link_, ee_max_opening_angle_,approach_value_);
+  CreateGrasps* create = new CreateGrasps(nh_,new_sqArr, table_center_,
+                                          arm_group_,ee_grasp_link_, ee_max_opening_angle_,approach_value_);
+  
   create->sample_grasps();
   grasp_execution::graspArr grasps;
   create->getGrasps(grasps);
@@ -220,11 +222,14 @@ bool SQGrasping::serviceCallback(sq_grasping::getGrasps::Request &req, sq_graspi
   srv.request.running = true;
   client_.call(srv);
   std::cout<<"Received: "<<srv.response.sqs.sqs.size()<<" superquadrics"<<std::endl;
+  //std::cout<<"Table received: "<<srv.response.table_center.x <<" "<<srv.response.table_center.y<<" "
+          //<<srv.response.table_center.z<<std::endl;
   /*if (show_sq_)
     //sampleSQFromSQS(srv.response.sqs);
     sampleSQFromSQS(new_sqs_);*/
 
   sqs_ = srv.response.sqs;
+  table_center_ = srv.response.table_center;
   if(sqs_.sqs.size() ==0)
   {
     std::cout<<"No more superquadrics available to grasp \n";
