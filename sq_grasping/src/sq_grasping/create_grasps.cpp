@@ -260,7 +260,9 @@ void CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
   {
     geometry_msgs::PoseStamped q_stamped;
     q_stamped.header.frame_id = frame_id_ ;
-    q_stamped.pose = grasps_in[i].pose;
+    geometry_msgs::Pose trans_pose;
+    transformFrame("/odom_combined","/base_link",grasps_in[i].pose, trans_pose);
+    q_stamped.pose = trans_pose;
     moveit_msgs::GetPositionIK srv;
     moveit_msgs::PositionIKRequest req;
     req.group_name = group_.getName();
@@ -268,13 +270,7 @@ void CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
     req.attempts = 10;
     req.timeout.fromSec(0.1);
     req.pose_stamped = q_stamped;
-    
-    geometry_msgs::Pose trans_pose;
-    transformFrame("/odom_combined","/base_link",q_stamped.pose, trans_pose);
-    
-
-
-
+       
     std::cout<<trans_pose.position.x<<" "<<trans_pose.position.y<<" "<<trans_pose.position.z<<std::endl;
     std::cout<<trans_pose.orientation.x<<" "<<trans_pose.orientation.y<<" "<<
                 trans_pose.orientation.z<<" "<<trans_pose.orientation.w<<std::endl;
