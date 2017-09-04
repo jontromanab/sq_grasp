@@ -18,8 +18,9 @@
 class CreateGrasps
 {
 public:
-  CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, geometry_msgs::Vector3 table_center, const std::string group,
-               const std::string ee_name, double ee_max_opening_angle, double approach_value);
+  CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, geometry_msgs::Vector3 table_center,
+               const std::string group, const std::string ee_name, double ee_max_opening_angle,
+               double object_padding, double approach_value);
   ~CreateGrasps();
   void sample_grasps();
   void getGrasps(grasp_execution::graspArr &grasps);
@@ -32,7 +33,7 @@ private:
 
   Eigen::Affine3d transform_;
 
-  bool findGraspFromSQ(const sq_fitting::sq& sq, std::vector<grasp_execution::grasp>& grasps);
+  bool findGraspFromSQ(const sq_fitting::sq& sq, grasp_execution::grasp& grasps);
 
   void findApproachPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
@@ -53,6 +54,9 @@ private:
   bool filterGraspsByIK(const std::vector<grasp_execution::grasp>& grasps_in,
                         std::vector<grasp_execution::grasp>& grasps_out);
 
+  void getClosestToCenterGrasp(const std::vector<grasp_execution::grasp>& grasps_in, const sq_fitting::sq& sq,
+                               grasp_execution::grasp& final_grasp);
+
   void createTransform(const std::string& grasp_frame);
   void TransformPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
@@ -62,6 +66,7 @@ private:
   std::string group_name_;
   boost::scoped_ptr<moveit::planning_interface::MoveGroup> group_;
   double ee_max_opening_angle_;
+  double object_padding_;
   double approach_value_;
   ros::ServiceClient client_;
   ros::AsyncSpinner spinner;

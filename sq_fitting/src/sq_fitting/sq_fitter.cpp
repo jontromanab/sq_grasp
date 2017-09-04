@@ -57,6 +57,7 @@ bool SQFitter::serviceCallback(sq_fitting::get_sq::Request &req, sq_fitting::get
 
 void SQFitter::cloud_callback(const sensor_msgs::PointCloud2ConstPtr &input)
 {
+  std::cout<<"I am calling cloud"<<std::endl;
   pcl::fromROSMsg(*input, *cloud_);
   this->input_msg_ = *input;
   transformFrameCloud(this->cloud_, this->transformed_cloud_);
@@ -207,33 +208,6 @@ void SQFitter::filter_RadiusOutlier(CloudPtr &cloud_in, CloudPtr &cloud_out)
   outrem.setMinNeighborsInRadius (1);
   outrem.filter (*cloud_out);
 }
-
-/*void getCenter(CloudPtr &cloud_in, double& x, double& y, double& z)
-{
-  double val_x = cloud_in->points.at(0).x;
-  double val_y = cloud_in->points.at(0).y;
-  double val_z = cloud_in->points.at(0).z;
-  double x_max = val_x, x_min = val_x, y_max = val_y, y_min = val_y, z_max = val_z, z_min = val_z;
-  for(int i=0;i<cloud_in->points.size();++i)
-  {
-    if (cloud_in->points.at(i).x>=x_max)
-      x_max = cloud_in->points.at(i).x;
-    if (cloud_in->points.at(i).x<=x_min)
-      x_min = cloud_in->points.at(i).x;
-    if (cloud_in->points.at(i).y>=y_max)
-      y_max = cloud_in->points.at(i).y;
-    if (cloud_in->points.at(i).y<=y_min)
-      y_min = cloud_in->points.at(i).y;
-    if (cloud_in->points.at(i).z>=z_max)
-      z_max = cloud_in->points.at(i).z;
-    if (cloud_in->points.at(i).z<=z_min)
-      z_min = cloud_in->points.at(i).z;
-  }
-  x = (x_max+x_min)/2;
-  y = (y_max+y_min)/2;
-  z = (z_max+z_min)/2;
-
-}*/
 
 void SQFitter::mirror_cloud(CloudPtr &cloud_in, CloudPtr &cloud_out)
 {

@@ -16,13 +16,14 @@
 
 SQGrasping::SQGrasping(ros::NodeHandle &nh, const std::string &sq_topic, bool show_sq, bool show_grasp,
                        const std::string output_frame, const std::string ee_group,const std::string ee_grasp_link,
-                       const std::string ee_joint, double ee_max_opening_angle, const std::string arm_group,
+                       const std::string ee_joint, double ee_max_opening_angle, double object_padding,
+                       const std::string arm_group,
                        double approach_value)
   :nh_(nh), spinner(1) ,show_sq_(show_sq), show_grasp_(show_grasp),
     output_frame_(output_frame), ee_group_(ee_group),
     ee_grasp_link_(ee_grasp_link), ee_joint_(ee_joint),
-    ee_max_opening_angle_(ee_max_opening_angle), arm_group_(arm_group),
-    approach_value_(approach_value)
+    ee_max_opening_angle_(ee_max_opening_angle), object_padding_(object_padding),
+    arm_group_(arm_group), approach_value_(approach_value)
 {
   //calling sq_ server and creating sq_grasp server
   client_ = nh_.serviceClient<sq_fitting::get_sq>(sq_topic);
@@ -183,7 +184,8 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
   std::cout<<"Header after: "<<new_sqArr.header.frame_id<<std::endl;
   sampleSQFromSQS(new_sqArr);
   CreateGrasps* create = new CreateGrasps(nh_,new_sqArr, table_center_,
-                                          arm_group_,ee_grasp_link_, ee_max_opening_angle_,approach_value_);
+                                          arm_group_,ee_grasp_link_, ee_max_opening_angle_,object_padding_,
+                                          approach_value_);
   
   create->sample_grasps();
   grasp_execution::graspArr grasps;
@@ -216,8 +218,8 @@ bool SQGrasping::serviceCallback(sq_grasping::getGrasps::Request &req, sq_graspi
 {
   sqs_.sqs.resize(0);
   std::cout<<"Service callback started"<<std::endl;
-  std::cout<<"Dealing with a hand with :"<<req.num_of_fingers<<" fingers\n";
-  std::cout<<"I am calling the sq_fitting topic for SQ"<<std::endl;
+  //std::cout<<"Dealing with a hand with :"<<req.num_of_fingers<<" fingers\n";
+  std::cout<<"I am calling the sq_fitting topic for SQ. This may take some time based on how may objects you have"<<std::endl;
   sq_fitting::get_sq srv;
   srv.request.running = true;
   client_.call(srv);

@@ -17,6 +17,7 @@ int main(int argc, char **argv)
   double ee_max_opening_angle;
   std::string arm_group;
   double approach_value;
+  double object_padding;
 
 
   nh_.getParam("sq_topic", sq_topic);
@@ -31,10 +32,11 @@ int main(int argc, char **argv)
 
   nh_.getParam("arm_group", arm_group);
   nh_.getParam("approach_value", approach_value);
+  nh_.getParam("object_padding", object_padding);
 
   SQGrasping sqgrasping(nh_, sq_topic, show_sq, show_grasp,
-                        output_frame, ee_group, ee_grasp_link, ee_joint, ee_max_opening_angle,arm_group,
-                        approach_value);
+                        output_frame, ee_group, ee_grasp_link, ee_joint, ee_max_opening_angle,
+                        object_padding, arm_group,approach_value);
 
   sqgrasping.runNode();
   return 0;

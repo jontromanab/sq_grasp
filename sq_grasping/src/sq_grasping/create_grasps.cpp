@@ -19,8 +19,8 @@
 
 CreateGrasps::CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, geometry_msgs::Vector3 table_center,
                            const std::string group,const std::string ee_name,
-                           double ee_max_opening_angle, double approach_value): nh_(nh),spinner(1), group_name_(group),
-  ee_name_(ee_name), ee_max_opening_angle_(ee_max_opening_angle),
+                           double ee_max_opening_angle, double object_padding, double approach_value): nh_(nh),spinner(1), group_name_(group),
+  ee_name_(ee_name), ee_max_opening_angle_(ee_max_opening_angle), object_padding_(object_padding),
   approach_value_(approach_value)
 {
   sqArr_ = sqArr;
@@ -43,42 +43,57 @@ CreateGrasps::~CreateGrasps()
 
 }
 
-bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, std::vector<grasp_execution::grasp>& grasps)
+bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, grasp_execution::grasp& grasp)
 {
-  grasps.resize(0);
-  //First we create Initial 6 grasps from major axes. +x, -x, +y, -y, +z, z_rot
+  // 1.First we create Initial 6 grasps from major axes. +x, -x, +y, -y, +z, z_rot
   std::vector<grasp_execution::grasp> initial_grasps;
   createInitGrasps(sq, initial_grasps);
   std::cout<<"Initial grasps size: "<<initial_grasps.size()<<std::endl;
-  //We filter grasps whose angles are more than max gripper openning angle
+  //2. We filter grasps whose angles are more than max gripper openning angle
   std::vector<grasp_execution::grasp> grasps_filtered_by_angle;
   filterGraspsByOpenningAngle(initial_grasps, grasps_filtered_by_angle);
   if(grasps_filtered_by_angle.size()==0)
     return false;
   std::cout<<"Grasps filtered by angle size: "<<grasps_filtered_by_angle.size()<<std::endl;
-  //We create approach poses for every grasp. If the original pose and approach pose both have IK solutions,
+  //3. We create approach poses for every grasp. If the original pose and approach pose both have IK solutions,
   // then only this grasp can proceed
   std::vector<grasp_execution::grasp> grasps_filtered_by_IK;
   grasps_filtered_by_IK.resize(0);
+  //Creating approach direction for every IK filtered grasp
   for(int i=0;i<grasps_filtered_by_angle.size();++i)
   {
     if(isGraspReachable(grasps_filtered_by_angle[i]))
-      grasps_filtered_by_IK.push_back(grasps_filtered_by_angle[i]);
+    {
+      grasp_execution::grasp gr;
+      gr = grasps_filtered_by_angle[i];
+      geometry_msgs::Vector3 direction;
+      findDirection(gr.pose,direction);
+      gr.approach = direction;
+      grasps_filtered_by_IK.push_back(gr);
+    }
   }
-
-  std::cout<<"Grasps filtered by IK: "<<grasps_filtered_by_IK.size()<<std::endl;
-  if(grasps_filtered_by_IK.size()>0)
-    for(int i=0;i<grasps_filtered_by_IK.size();++i)
-      grasps.push_back(grasps_filtered_by_IK[i]);
-
-  if(grasps.size()>0)
-    return true;
-  else
+  //4. The most closest grasp to the object center is the chosen grasp. Now we cut the barrier of choosing grasp in z direction or x/y direction
+  std::cout<<"Grasps filtered by Ik: "<<grasps_filtered_by_IK.size()<<std::endl;
+  if(grasps_filtered_by_IK.size()==0)
     return false;
-
+  else if (grasps_filtered_by_IK.size() == 1)
+    grasp = grasps_filtered_by_IK[0];
+  else
+  {
+    grasp_execution::grasp gr;
+    getClosestToCenterGrasp(grasps_filtered_by_IK, sq, gr);
+    grasp = gr;
+  }
 }
 
-
+double getDistanceBwPoses(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2)
+{
+  double x_dist  = pose1.position.x - pose2.position.x;
+  double y_dist  = pose1.position.y - pose2.position.y;
+  double z_dist  = pose1.position.z - pose2.position.z;
+  double dist = sqrt((x_dist*x_dist)+(x_dist*x_dist)+(x_dist*x_dist));
+  return dist;
+}
 
 void sq_create_transform(const geometry_msgs::Pose& pose, Eigen::Affine3f& transform)
 {
@@ -462,6 +477,22 @@ bool CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
     return false;
 }
 
+void CreateGrasps::getClosestToCenterGrasp(const std::vector<grasp_execution::grasp> &grasps_in, const sq_fitting::sq &sq, grasp_execution::grasp &final_grasp)
+{
+  double dist = 10.0;
+  grasp_execution::grasp gr;
+  for(int i=0;i<grasps_in.size();++i)
+  {
+    double new_dist = getDistanceBwPoses(grasps_in[i].pose, sq.pose);
+    if (new_dist<dist)
+    {
+      dist = new_dist;
+      gr = grasps_in[i];
+     }
+  }
+ final_grasp = gr;
+}
+
 void CreateGrasps::sample_grasps()
 {
   moveit_msgs::CollisionObject collision_object;
@@ -489,6 +520,35 @@ void CreateGrasps::sample_grasps()
 
   std::vector<moveit_msgs::CollisionObject> collision_objects;
   collision_objects.push_back(collision_object);
+  std::vector<std::string> objects;
+
+  //Make all the superquadrics collision objects
+  for(int i=0;i<sqArr_.sqs.size();++i)
+  {
+    moveit_msgs::CollisionObject collision_object;
+    collision_object.header.frame_id = frame_id_;
+    std::string obj = "obj";
+    obj+=std::to_string(i);
+    collision_object.id = obj;
+    objects.push_back(obj);
+
+    shape_msgs::SolidPrimitive primitive;
+    primitive.type = primitive.BOX;
+    primitive.dimensions.resize(3);
+    primitive.dimensions[0] = 2*sqArr_.sqs[i].a1 + object_padding_;
+    primitive.dimensions[1] = 2*sqArr_.sqs[i].a2 + object_padding_;
+    primitive.dimensions[2] = 2*sqArr_.sqs[i].a3 + object_padding_;
+
+    /* A pose for the box (specified relative to frame_id) */
+    geometry_msgs::Pose box_pose;
+    box_pose.position =  sqArr_.sqs[i].pose.position;
+    box_pose.orientation =  sqArr_.sqs[i].pose.orientation;
+
+    collision_object.primitives.push_back(primitive);
+    collision_object.primitive_poses.push_back(box_pose);
+    collision_object.operation = collision_object.ADD;
+    collision_objects.push_back(collision_object);
+  }
 
   // Now, let's add the collision object into the world
   ROS_INFO("Add table into the world");
@@ -501,16 +561,19 @@ void CreateGrasps::sample_grasps()
   for(int i=0;i<sqArr_ .sqs.size();++i)
     {
       std::cout<<">>>>>>>>>>>>For object: "<<i+1<<" <<<<<<<<<<<<"<<std::endl;
-      std::vector<grasp_execution::grasp> gr;
+      grasp_execution::grasp gr;
       if(findGraspFromSQ(sqArr_.sqs[i], gr))
-        for(int i=0;i<gr.size();++i)
-          init_grasps_.grasps.push_back(gr[i]);
+        init_grasps_.grasps.push_back(gr);
     }
 
   // Now, let's remove the collision object from the world.
   ROS_INFO("Remove the object from the world");
   std::vector<std::string> object_ids;
   object_ids.push_back(collision_object.id);
+  for (int i=0;i<objects.size();++i)
+  {
+    object_ids.push_back(objects[i]);
+  }
   planning_scene_interface_->removeCollisionObjects(object_ids);
   sleep(1.0);
 }
