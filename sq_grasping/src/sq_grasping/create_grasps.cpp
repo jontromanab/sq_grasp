@@ -27,15 +27,11 @@ CreateGrasps::CreateGrasps(ros::NodeHandle &nh, sq_fitting::sqArray sqArr, geome
   table_center_ = table_center;
   init_grasps_.grasps.resize(0);
   frame_id_ = sqArr_.header.frame_id;
-  std::cout<<"frame_id: "<<sqArr_.header.frame_id<<std::endl;
   group_.reset(new moveit::planning_interface::MoveGroup(group_name_));
   spinner.start();
   planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
-  createTransform(ee_name);
+  transform_ = createTransform(ee_name, group_->getEndEffectorLink());
   //client_= nh_.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
-
-  
-
 }
 
 CreateGrasps::~CreateGrasps()
@@ -74,15 +70,20 @@ bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, grasp_execution::gr
   }
   //4. The most closest grasp to the object center is the chosen grasp. Now we cut the barrier of choosing grasp in z direction or x/y direction
   std::cout<<"Grasps filtered by Ik: "<<grasps_filtered_by_IK.size()<<std::endl;
-  if(grasps_filtered_by_IK.size()==0)
+  if(grasps_filtered_by_IK.size() == 0)
     return false;
   else if (grasps_filtered_by_IK.size() == 1)
+  {
     grasp = grasps_filtered_by_IK[0];
+    return true;
+  }
   else
   {
     grasp_execution::grasp gr;
     getClosestToCenterGrasp(grasps_filtered_by_IK, sq, gr);
+    //std::cout<<"GRASP: "<<gr.pose.position.x<<" "<<gr.pose.position.y<<" "<<gr.approach.x<<" "<<gr.approach.y<<std::endl;
     grasp = gr;
+    return true;
   }
 }
 
@@ -91,7 +92,7 @@ double getDistanceBwPoses(const geometry_msgs::Pose& pose1, const geometry_msgs:
   double x_dist  = pose1.position.x - pose2.position.x;
   double y_dist  = pose1.position.y - pose2.position.y;
   double z_dist  = pose1.position.z - pose2.position.z;
-  double dist = sqrt((x_dist*x_dist)+(x_dist*x_dist)+(x_dist*x_dist));
+  double dist = sqrt((x_dist*x_dist)+(y_dist*y_dist)+(z_dist*z_dist));
   return dist;
 }
 
@@ -133,11 +134,12 @@ void transformFrame(const std::string& input_frame, const std::string& output_fr
     }
   }
 
-void CreateGrasps::createTransform(const std::string &grasp_frame)
+Eigen::Affine3d CreateGrasps::createTransform(const std::string &grasp_frame, const std::string& planning_frame)
 {
   tf::TransformListener listener;
   tf::StampedTransform transform;
-  std::string planning_frame = group_->getEndEffectorLink();
+  Eigen::Affine3d transformation;
+  //std::string planning_frame = group_->getEndEffectorLink();
   try
   {
     listener.waitForTransform(grasp_frame, planning_frame, ros::Time(0), ros::Duration(3.0));
@@ -150,14 +152,14 @@ void CreateGrasps::createTransform(const std::string &grasp_frame)
     inter_pose.orientation.y = transform.getRotation().getY();
     inter_pose.orientation.z = transform.getRotation().getZ();
     inter_pose.orientation.w = transform.getRotation().getW();
-    tf::poseMsgToEigen(inter_pose, transform_);
+    tf::poseMsgToEigen(inter_pose, transformation);
   }
   catch(tf::TransformException ex)
   {
     ROS_ERROR("%s",ex.what());
     ros::Duration(1.0).sleep();
   }
-
+  return transformation;
 }
 
 Eigen::Affine3d create_rotation_matrix(double ax, double ay, double az) {
@@ -477,16 +479,32 @@ bool CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
     return false;
 }
 
+double CreateGrasps::getDistanceFromRobot(geometry_msgs::Pose& pose)
+{
+  Eigen::Affine3d transform = createTransform(group_->getPlanningFrame(),group_->getEndEffectorLink());
+  geometry_msgs::Pose new_pose;
+  tf::poseEigenToMsg(transform, new_pose);
+  double dist =  getDistanceBwPoses(new_pose, pose);
+  return dist;
+}
+
 void CreateGrasps::getClosestToCenterGrasp(const std::vector<grasp_execution::grasp> &grasps_in, const sq_fitting::sq &sq, grasp_execution::grasp &final_grasp)
 {
-  double dist = 10.0;
+  double dist = 100.0;
   grasp_execution::grasp gr;
   for(int i=0;i<grasps_in.size();++i)
   {
-    double new_dist = getDistanceBwPoses(grasps_in[i].pose, sq.pose);
+    geometry_msgs::Pose approach_pose;
+    geometry_msgs::Pose trans_pose;
+    findApproachPoseFromDir(grasps_in[i].pose, grasps_in[i].approach, approach_pose);
+    transformFrame(frame_id_, group_->getPlanningFrame(),approach_pose, trans_pose);
+    std::cout<<"Dist from ee: "<<dist_from_ee<<std::endl;
+    double dist_from_center = getDistanceBwPoses(approach_pose, sq.pose);
+    double new_dist = dist_from_ee + dist_from_center;
     if (new_dist<dist)
     {
       dist = new_dist;
+      std::cout<<"Distance now: "<<dist<<std::endl;
       gr = grasps_in[i];
      }
   }
@@ -558,12 +576,16 @@ void CreateGrasps::sample_grasps()
   
   init_grasps_.header.frame_id = frame_id_;
   init_grasps_.header.stamp = ros::Time::now();
+  init_grasps_.table_center = table_center_;
   for(int i=0;i<sqArr_ .sqs.size();++i)
     {
       std::cout<<">>>>>>>>>>>>For object: "<<i+1<<" <<<<<<<<<<<<"<<std::endl;
       grasp_execution::grasp gr;
       if(findGraspFromSQ(sqArr_.sqs[i], gr))
+      {
+        std::cout<<"GRASP: "<<gr.pose.position.x<<" "<<gr.pose.position.y<<" "<<gr.approach.x<<" "<<gr.approach.y<<std::endl;
         init_grasps_.grasps.push_back(gr);
+      }
     }
 
   // Now, let's remove the collision object from the world.

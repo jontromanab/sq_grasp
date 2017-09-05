@@ -10,7 +10,7 @@
        <param name="ee_group" value="left_gripper" />
        <param name="ee_grasp_link" value = "l_gripper_motor_slider_link"/>
        <param name="ee_joint" value = "l_gripper_l_finger_joint" />
-       <param name="ee_max_opening_angle" value="0.55" />
+       <param name="ee_max_opening_angle" value="0.45" />
        <param name="object_padding" value="0.01" />
 
         <!--Manipulator params-->

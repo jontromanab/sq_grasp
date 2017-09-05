@@ -33,7 +33,7 @@ private:
 
   Eigen::Affine3d transform_;
 
-  bool findGraspFromSQ(const sq_fitting::sq& sq, grasp_execution::grasp& grasps);
+  bool findGraspFromSQ(const sq_fitting::sq& sq,grasp_execution::grasp& grasps);
 
   void findApproachPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
@@ -57,7 +57,10 @@ private:
   void getClosestToCenterGrasp(const std::vector<grasp_execution::grasp>& grasps_in, const sq_fitting::sq& sq,
                                grasp_execution::grasp& final_grasp);
 
-  void createTransform(const std::string& grasp_frame);
+  double getDistanceFromRobot(geometry_msgs::Pose& pose);
+
+  Eigen::Affine3d createTransform(const std::string &grasp_frame, const std::string& planning_frame);
+
   void TransformPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
   bool isGraspReachable(const grasp_execution::grasp grasp);

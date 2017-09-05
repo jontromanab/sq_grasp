@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     new_srv.request.num_of_fingers = 1;
     client.call(new_srv);
     grasp_execution::ExecuteGraspGoal goal;
-    goal.grasp = new_srv.response.grasps.grasps[0];
+    goal.grasps = new_srv.response.grasps;
     gs.sendGoal(goal);
     bool finished_before_timeout = gs.waitForResult (ros::Duration(40.0));
     if(finished_before_timeout )

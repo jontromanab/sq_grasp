@@ -160,7 +160,7 @@ void SQGrasping::createGraspsMarkers(const grasp_execution::graspArr &grasps, vi
 void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::graspArr& gs)
 {
   sq_fitting::sqArray new_sqArr;
-  std::cout<<"Header before: "<<sqs.header.frame_id<<std::endl;
+  //std::cout<<"Header before: "<<sqs.header.frame_id<<std::endl;
   new_sqArr.header.frame_id = output_frame_;
   new_sqArr.header.stamp = ros::Time::now();
   for (int i=0;i<sqs.sqs.size();++i)
@@ -181,7 +181,7 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
       new_sq.e2 = sqs.sqs[i].e2;
       new_sqArr.sqs.push_back(new_sq);
   }
-  std::cout<<"Header after: "<<new_sqArr.header.frame_id<<std::endl;
+  //std::cout<<"Header after: "<<new_sqArr.header.frame_id<<std::endl;
   sampleSQFromSQS(new_sqArr);
   CreateGrasps* create = new CreateGrasps(nh_,new_sqArr, table_center_,
                                           arm_group_,ee_grasp_link_, ee_max_opening_angle_,object_padding_,

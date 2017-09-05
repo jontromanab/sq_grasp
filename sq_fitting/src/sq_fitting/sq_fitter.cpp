@@ -57,6 +57,7 @@ bool SQFitter::serviceCallback(sq_fitting::get_sq::Request &req, sq_fitting::get
 
 void SQFitter::cloud_callback(const sensor_msgs::PointCloud2ConstPtr &input)
 {
+  std::cout<<"I am calling cloud"<<std::endl;
   pcl::fromROSMsg(*input, *cloud_);
   this->input_msg_ = *input;
   transformFrameCloud(this->cloud_, this->transformed_cloud_);
