@@ -39,72 +39,6 @@ CreateGrasps::~CreateGrasps()
 
 }
 
-bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, grasp_execution::grasp& grasp)
-{
-  // 1.First we create Initial 6 grasps from major axes. +x, -x, +y, -y, +z, z_rot
-  std::vector<grasp_execution::grasp> initial_grasps;
-  createInitGrasps(sq, initial_grasps);
-  std::cout<<"Initial grasps size: "<<initial_grasps.size()<<std::endl;
-  //2. We filter grasps whose angles are more than max gripper openning angle
-  std::vector<grasp_execution::grasp> grasps_filtered_by_angle;
-  filterGraspsByOpenningAngle(initial_grasps, grasps_filtered_by_angle);
-  if(grasps_filtered_by_angle.size()==0)
-    return false;
-  std::cout<<"Grasps filtered by angle size: "<<grasps_filtered_by_angle.size()<<std::endl;
-  //3. We create approach poses for every grasp. If the original pose and approach pose both have IK solutions,
-  // then only this grasp can proceed
-  std::vector<grasp_execution::grasp> grasps_filtered_by_IK;
-  grasps_filtered_by_IK.resize(0);
-  //Creating approach direction for every IK filtered grasp
-  for(int i=0;i<grasps_filtered_by_angle.size();++i)
-  {
-    if(isGraspReachable(grasps_filtered_by_angle[i]))
-    {
-      grasp_execution::grasp gr;
-      gr = grasps_filtered_by_angle[i];
-      geometry_msgs::Vector3 direction;
-      findDirection(gr.pose,direction);
-      gr.approach = direction;
-      grasps_filtered_by_IK.push_back(gr);
-    }
-  }
-  //4. Filter the grasps based on their dist from object and current robot ee pose. Now we cut the barrier of choosing grasp in z direction or x/y direction
-  std::cout<<"Grasps filtered by Ik: "<<grasps_filtered_by_IK.size()<<std::endl;
-  if(grasps_filtered_by_IK.size() == 0)
-    return false;
-  else if (grasps_filtered_by_IK.size() == 1)
-  {
-    grasp = grasps_filtered_by_IK[0];
-    return true;
-  }
-  else
-  {
-    grasp_execution::grasp gr;
-    filterGraspByDistance(sq, grasps_filtered_by_IK, gr);
-    grasp = gr;
-    return true;
-  }
-
-}
-
-double getDistanceBwPoses(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2)
-{
-  double x_dist  = pose1.position.x - pose2.position.x;
-  double y_dist  = pose1.position.y - pose2.position.y;
-  double z_dist  = pose1.position.z - pose2.position.z;
-  double dist = sqrt((x_dist*x_dist)+(y_dist*y_dist)+(z_dist*z_dist));
-  return dist;
-}
-
-void sq_create_transform(const geometry_msgs::Pose& pose, Eigen::Affine3f& transform)
-{
-  transform = Eigen::Affine3f::Identity();
-  Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-  q.normalize();
-  transform.translation()<<pose.position.x, pose.position.y, pose.position.z;
-  transform.rotate(q);
-}
-
 void transformFrame(const std::string& input_frame, const std::string& output_frame, const geometry_msgs::Pose &pose_in, geometry_msgs::Pose &pose_out)
 {
   tf::TransformListener listener;
@@ -133,6 +67,76 @@ void transformFrame(const std::string& input_frame, const std::string& output_fr
       ros::Duration(1.0).sleep();
     }
   }
+
+
+bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, grasp_execution::grasp& grasp)
+{
+  // 1.First we create Initial 6 grasps from major axes. +x, -x, +y, -y, +z, z_rot
+  std::vector<grasp_execution::grasp> initial_grasps;
+  createInitGrasps(sq, initial_grasps);
+  std::cout<<"Initial grasps size: "<<initial_grasps.size()<<std::endl;
+  //2. We filter grasps whose angles are more than max gripper openning angle
+  std::vector<grasp_execution::grasp> grasps_filtered_by_angle;
+  filterGraspsByOpenningAngle(initial_grasps, grasps_filtered_by_angle);
+  if(grasps_filtered_by_angle.size()==0)
+    return false;
+  std::cout<<"Grasps filtered by angle size: "<<grasps_filtered_by_angle.size()<<std::endl;
+  //3. We create approach poses for every grasp. If the original pose and approach pose both have IK solutions,
+  // then only this grasp can proceed
+  std::vector<grasp_execution::grasp> grasps_filtered_by_IK;
+  grasps_filtered_by_IK.resize(0);
+
+  //Creating approach direction for every IK filtered grasp
+  for(int i=0;i<grasps_filtered_by_angle.size();++i)
+  {
+    if(isGraspReachable(grasps_filtered_by_angle[i]))
+    {
+      grasp_execution::grasp gr;
+      gr = grasps_filtered_by_angle[i];
+      geometry_msgs::Vector3 direction;
+      findDirection(gr.pose,direction);
+      gr.approach = direction;
+      grasps_filtered_by_IK.push_back(gr);
+    }
+  }
+  std::cout<<"Grasps filtered by IK: "<<grasps_filtered_by_IK.size()<<std::endl;
+  //4. Filter the grasps based on their dist from object and current robot ee pose. Now we cut the barrier of choosing grasp in z direction or x/y direction
+  if(grasps_filtered_by_IK.size() == 0)
+    return false;
+  else if (grasps_filtered_by_IK.size() == 1)
+  {
+    grasp = grasps_filtered_by_IK[0];
+    return true;
+  }
+  else
+  {
+    grasp_execution::grasp gr;
+    filterGraspByDistance(sq, grasps_filtered_by_IK, gr);
+    grasp = gr;
+    return true;
+  }
+
+}
+
+
+
+double getDistanceBwPoses(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2)
+{
+  double x_dist  = pose1.position.x - pose2.position.x;
+  double y_dist  = pose1.position.y - pose2.position.y;
+  double z_dist  = pose1.position.z - pose2.position.z;
+  double dist = sqrt((x_dist*x_dist)+(y_dist*y_dist)+(z_dist*z_dist));
+  return dist;
+}
+
+void sq_create_transform(const geometry_msgs::Pose& pose, Eigen::Affine3f& transform)
+{
+  transform = Eigen::Affine3f::Identity();
+  Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+  q.normalize();
+  transform.translation()<<pose.position.x, pose.position.y, pose.position.z;
+  transform.rotate(q);
+}
 
 Eigen::Affine3d CreateGrasps::createTransform(const std::string &grasp_frame, const std::string& planning_frame)
 {
@@ -328,9 +332,6 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   tf::poseEigenToMsg(back_to_place5_trnsformed, pose_z);
   gr_z_pos.pose = pose_z;
   gr_z_pos.angle = sq.a2*10;
-  //std::cout<<"z pose: "<<gr_z_pos.pose.orientation.x<<" "<<gr_z_pos.pose.orientation.y<<
-             //" "<<gr_z_pos.pose.orientation.z<<gr_z_pos.pose.orientation.w<<std::endl;
-  //std::cout<<"angle: "<<gr_z_pos.angle<<std::endl;
   grasps.push_back(gr_z_pos);
 
   //Second grasp in Z direction
@@ -350,9 +351,6 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   geometry_msgs::Pose pose_z_rotated = rotatePose(pose_z, M_PI/2, 1,false);
   gr_z_rot.pose = pose_z_rotated;
   gr_z_rot.angle = sq.a1*10;
-  //std::cout<<"z pose: "<<gr_z_rot.pose.orientation.x<<" "<<gr_z_rot.pose.orientation.y<<
-             //" "<<gr_z_rot.pose.orientation.z<<gr_z_rot.pose.orientation.w<<std::endl;
-   //std::cout<<"angle: "<<gr_z_rot.angle<<std::endl;
   grasps.push_back(gr_z_rot);
 }
 
@@ -576,13 +574,12 @@ void CreateGrasps::sample_grasps()
       grasp_execution::grasp gr;
       if(findGraspFromSQ(sqArr_.sqs[i], gr))
       {
-        //std::cout<<"GRASP: "<<gr.pose.position.x<<" "<<gr.pose.position.y<<" "<<gr.approach.x<<" "<<gr.approach.y<<std::endl;
         init_grasps_.grasps.push_back(gr);
       }
     }
 
   // Now, let's remove the collision object from the world.
-  ROS_INFO("Remove the object from the world");
+  ROS_INFO("Remove the collision objects from the world");
   std::vector<std::string> object_ids;
   object_ids.push_back(collision_object.id);
   for (int i=0;i<objects.size();++i)
