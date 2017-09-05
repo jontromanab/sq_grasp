@@ -54,8 +54,8 @@ private:
   bool filterGraspsByIK(const std::vector<grasp_execution::grasp>& grasps_in,
                         std::vector<grasp_execution::grasp>& grasps_out);
 
-  void getClosestToCenterGrasp(const std::vector<grasp_execution::grasp>& grasps_in, const sq_fitting::sq& sq,
-                               grasp_execution::grasp& final_grasp);
+  void filterGraspByDistance(const sq_fitting::sq& sq, const std::vector<grasp_execution::grasp>& grasps_in,
+                               grasp_execution::grasp& grasp_out);
 
   double getDistanceFromRobot(geometry_msgs::Pose& pose);
 

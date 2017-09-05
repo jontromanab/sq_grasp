@@ -68,7 +68,7 @@ bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, grasp_execution::gr
       grasps_filtered_by_IK.push_back(gr);
     }
   }
-  //4. The most closest grasp to the object center is the chosen grasp. Now we cut the barrier of choosing grasp in z direction or x/y direction
+  //4. Filter the grasps based on their dist from object and current robot ee pose. Now we cut the barrier of choosing grasp in z direction or x/y direction
   std::cout<<"Grasps filtered by Ik: "<<grasps_filtered_by_IK.size()<<std::endl;
   if(grasps_filtered_by_IK.size() == 0)
     return false;
@@ -80,11 +80,11 @@ bool CreateGrasps::findGraspFromSQ(const sq_fitting::sq &sq, grasp_execution::gr
   else
   {
     grasp_execution::grasp gr;
-    getClosestToCenterGrasp(grasps_filtered_by_IK, sq, gr);
-    //std::cout<<"GRASP: "<<gr.pose.position.x<<" "<<gr.pose.position.y<<" "<<gr.approach.x<<" "<<gr.approach.y<<std::endl;
+    filterGraspByDistance(sq, grasps_filtered_by_IK, gr);
     grasp = gr;
     return true;
   }
+
 }
 
 double getDistanceBwPoses(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2)
@@ -278,14 +278,6 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   gr_x_pos.pose = orig_pose;
   gr_x_pos.angle = sq.a2*10;
   grasps.push_back(gr_x_pos);
-  //Approach pose for +x
-  /*geometry_msgs::Pose orig_pose_approach;
-  findApproachPose(orig_pose, orig_pose_approach);
-  grasp_execution::grasp gr_x_pos_approach;
-  gr_x_pos_approach.pose = orig_pose_approach;
-  gr_x_pos_approach.angle = gr_x_pos.angle;
-  grasps.push_back(gr_x_pos_approach);*/
-
 
 
   //Second grasp in x direction
@@ -336,6 +328,9 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   tf::poseEigenToMsg(back_to_place5_trnsformed, pose_z);
   gr_z_pos.pose = pose_z;
   gr_z_pos.angle = sq.a2*10;
+  //std::cout<<"z pose: "<<gr_z_pos.pose.orientation.x<<" "<<gr_z_pos.pose.orientation.y<<
+             //" "<<gr_z_pos.pose.orientation.z<<gr_z_pos.pose.orientation.w<<std::endl;
+  //std::cout<<"angle: "<<gr_z_pos.angle<<std::endl;
   grasps.push_back(gr_z_pos);
 
   //Second grasp in Z direction
@@ -355,13 +350,10 @@ void CreateGrasps::createInitGrasps(const sq_fitting::sq &sq, std::vector<grasp_
   geometry_msgs::Pose pose_z_rotated = rotatePose(pose_z, M_PI/2, 1,false);
   gr_z_rot.pose = pose_z_rotated;
   gr_z_rot.angle = sq.a1*10;
+  //std::cout<<"z pose: "<<gr_z_rot.pose.orientation.x<<" "<<gr_z_rot.pose.orientation.y<<
+             //" "<<gr_z_rot.pose.orientation.z<<gr_z_rot.pose.orientation.w<<std::endl;
+   //std::cout<<"angle: "<<gr_z_rot.angle<<std::endl;
   grasps.push_back(gr_z_rot);
-  /*geometry_msgs::Pose pose_z_rotated_approach;
-  findApproachPose(pose_z_rotated, pose_z_rotated_approach);
-  grasp_execution::grasp gr_z_rot_approach;
-  gr_z_rot_approach.pose = pose_z_rotated_approach;
-  gr_z_rot_approach.angle = gr_z_rot.angle;
-  grasps.push_back(gr_z_rot_approach);*/
 }
 
 void CreateGrasps::filterGraspsByOpenningAngle(const std::vector<grasp_execution::grasp> &grasps_in, std::vector<grasp_execution::grasp> &grasps_out)
@@ -488,7 +480,8 @@ double CreateGrasps::getDistanceFromRobot(geometry_msgs::Pose& pose)
   return dist;
 }
 
-void CreateGrasps::getClosestToCenterGrasp(const std::vector<grasp_execution::grasp> &grasps_in, const sq_fitting::sq &sq, grasp_execution::grasp &final_grasp)
+void CreateGrasps::filterGraspByDistance(const sq_fitting::sq& sq, const std::vector<grasp_execution::grasp>& grasps_in,
+                             grasp_execution::grasp& grasp_out)
 {
   double dist = 100.0;
   grasp_execution::grasp gr;
@@ -498,17 +491,17 @@ void CreateGrasps::getClosestToCenterGrasp(const std::vector<grasp_execution::gr
     geometry_msgs::Pose trans_pose;
     findApproachPoseFromDir(grasps_in[i].pose, grasps_in[i].approach, approach_pose);
     transformFrame(frame_id_, group_->getPlanningFrame(),approach_pose, trans_pose);
-    std::cout<<"Dist from ee: "<<dist_from_ee<<std::endl;
+    double dist_from_ee = getDistanceFromRobot(trans_pose);
     double dist_from_center = getDistanceBwPoses(approach_pose, sq.pose);
-    double new_dist = dist_from_ee + dist_from_center;
-    if (new_dist<dist)
+    double angle_value = grasps_in[i].angle;
+    double new_dist = dist_from_ee + dist_from_center+angle_value;
+    if(new_dist<dist)
     {
       dist = new_dist;
-      std::cout<<"Distance now: "<<dist<<std::endl;
       gr = grasps_in[i];
      }
-  }
- final_grasp = gr;
+   }
+  grasp_out = gr;
 }
 
 void CreateGrasps::sample_grasps()
@@ -583,7 +576,7 @@ void CreateGrasps::sample_grasps()
       grasp_execution::grasp gr;
       if(findGraspFromSQ(sqArr_.sqs[i], gr))
       {
-        std::cout<<"GRASP: "<<gr.pose.position.x<<" "<<gr.pose.position.y<<" "<<gr.approach.x<<" "<<gr.approach.y<<std::endl;
+        //std::cout<<"GRASP: "<<gr.pose.position.x<<" "<<gr.pose.position.y<<" "<<gr.approach.x<<" "<<gr.approach.y<<std::endl;
         init_grasps_.grasps.push_back(gr);
       }
     }
