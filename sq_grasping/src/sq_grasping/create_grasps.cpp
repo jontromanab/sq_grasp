@@ -413,7 +413,6 @@ bool CreateGrasps::filterGraspsByIK(const std::vector<grasp_execution::grasp> &g
 
   for(int i=0;i<poses.size();i+=2)
   {
-    std::cout<<"Loop "<<i<<std::endl;
     geometry_msgs::PoseStamped q_stamped;
     q_stamped.header.frame_id = frame_id_ ;
     geometry_msgs::Pose trans_pose;
