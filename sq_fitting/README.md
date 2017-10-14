@@ -1,5 +1,7 @@
 # Superquadics Fitting
 ============================
+![fitting](https://user-images.githubusercontent.com/3790876/31579784-003e5e78-b0fb-11e7-8acc-b652655fbdbf.jpg)
+
 
 ### Real time superquadric fitting on objects in dense clutter
 
