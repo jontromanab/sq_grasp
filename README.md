@@ -3,6 +3,8 @@
 
 Real time superquadric representation of objects and grasping
 
+![all_grasp](https://user-images.githubusercontent.com/3790876/31579761-8e9d9964-b0fa-11e7-8872-af5a05d268c1.jpg)
+
 
 Documentation about superquadric fitting can be found at: [superquadric_fitting] (https://github.com/jontromanab/sq_grasp/tree/master/sq_fitting)
 
