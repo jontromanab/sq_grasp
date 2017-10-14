@@ -28,6 +28,7 @@ To fit the superquadric model to a point cloud data, distance *d* from the point
 
 
 ![mirrored_scene](https://user-images.githubusercontent.com/3790876/31579797-56f111b6-b0fb-11e7-83e6-fa12f174346f.jpg)
+
 It creates a mirrored view of the objects on the occluded side. The estimation of superquadric fitting is noticably better than without mirroring. The colored sections are the points created by the algorithm, which are mirrored version of the point cloud of the objects.
 
 
