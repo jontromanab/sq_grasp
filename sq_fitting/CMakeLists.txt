@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 )
 
-find_package(freenect2 REQUIRED HINTS "$ENV{HOME}/freenect2")
+#find_package(freenect2 REQUIRED HINTS "$ENV{HOME}/freenect2")
 find_package(PCL 1.8 REQUIRED)
 find_package(OpenCV REQUIRED)
 
@@ -106,9 +106,9 @@ add_executable(sq_fitter_node src/nodes/sq_fitter_node.cpp)
 add_dependencies(sq_fitter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sq_fitter_node sq_fitter   ${catkin_LIBRARIES})
 
-add_executable(get_depth2rgb_cloud src/nodes/get_depth2rgb_cloud.cpp)
-add_dependencies(get_depth2rgb_cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(get_depth2rgb_cloud   ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES}  ${freenect2_LIBRARY})
+#add_executable(get_depth2rgb_cloud src/nodes/get_depth2rgb_cloud.cpp)
+#add_dependencies(get_depth2rgb_cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#target_link_libraries(get_depth2rgb_cloud   ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES}  ${freenect2_LIBRARY})
 
 add_executable(fitting_service src/sq_fitting/fitting_service.cpp)
 add_dependencies(fitting_service ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -149,6 +149,5 @@ target_link_libraries(show_convex_hull segmentation utils ${catkin_LIBRARIES} ${
 add_executable(get_sq_client src/test/get_sq_client.cpp)
 add_dependencies(get_sq_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(get_sq_client ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
-
 
 
