@@ -25,6 +25,8 @@ public:
   void getMinParams(sq_fitting::sq& param);
   void getMinError(double& error);
 
+  bool set_pose_est_method(const std::string method);
+
 
 
 private:
@@ -34,6 +36,8 @@ private:
   bool pre_align_;
   int pre_align_axis_;
   double min_error_;
+  std::string pose_est_method_;
+  bool set_method_;
   template<typename _Scalar, int nX = Eigen::Dynamic, int nY = Eigen::Dynamic>
   struct Functor
   {

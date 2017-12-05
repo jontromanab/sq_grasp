@@ -19,6 +19,7 @@ public:
     Segmentation::Parameters seg_params;
     std::vector<double> ws_limits;
     bool remove_nan;
+    std::string pose_est_method;
   };
 
   SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const std::string &output_frame, const SQFitter::Parameters &params);

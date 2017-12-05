@@ -441,6 +441,7 @@ void SQFitter::getSuperquadricParameters(std::vector<sq_fitting::sq>& params)
     SuperquadricFitting* sq_fit = new SuperquadricFitting(Objects_[i]);
     sq_fitting::sq min_param;
     double min_error;
+    if(!sq_fit->set_pose_est_method(sq_param_.pose_est_method)) ROS_ERROR("Method not recognized");
     sq_fit->fit();
     sq_fit->getMinParams(min_param);
     sq_fit->getMinError(min_error);

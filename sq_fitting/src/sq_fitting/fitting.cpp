@@ -11,9 +11,12 @@
 #include <tf_conversions/tf_eigen.h>
 #include<tf/transform_listener.h>
 
+
+
 SuperquadricFitting::SuperquadricFitting(const pcl::PointCloud<PointT>::Ptr& input_cloud) : pre_align_(true), pre_align_axis_(2)
 {
   cloud_ = input_cloud;
+  set_method_ = false;
 }
 
 void SuperquadricFitting::getMinParams(sq_fitting::sq &param)
@@ -34,40 +37,82 @@ void SuperquadricFitting::setPreAlign(bool pre_align, int pre_align_axis)
 
 void SuperquadricFitting::preAlign(Eigen::Affine3f &transform, Eigen::Vector3f &variances)
 {
-  /*Eigen::Vector4f xyz_centroid;
-  pcl::compute3DCentroid(*cloud_, xyz_centroid);
-  Eigen::Affine3f transformation_centroid = Eigen::Affine3f::Identity();
-  transformation_centroid.translation()<<-xyz_centroid(0), -xyz_centroid(1), -xyz_centroid(2);*/
+  if(set_method_)
+  {
+    if(pose_est_method_=="iteration")
+    {
+        //centroid::my method
+      double x, y, z;
+      getCenter(cloud_, x, y,z);
+      Eigen::Affine3f transformation_centroid = Eigen::Affine3f::Identity();
+      transformation_centroid.translation()<<-x, -y, -z;
 
-  double x, y, z;
-  getCenter(cloud_, x, y,z);
-  Eigen::Affine3f transformation_centroid = Eigen::Affine3f::Identity();
-  //std::cout<<"X "<<x<<"Y "<<y<<"Z "<<z<<std::endl;
-  transformation_centroid.translation()<<-x, -y, -z;
+      //Pose estimation
+      //my method
+      geometry_msgs::Pose pose;
+      getTransformPose(cloud_, pose);
+      pose.position.x = 0;
+      pose.position.y = 0;
+      pose.position.z = 0;
+      Eigen::Affine3d transform_in_eigen;
+      tf::poseMsgToEigen(pose, transform_in_eigen);
+      Eigen::Affine3d transform_in_eigen_inv = transform_in_eigen.inverse();
+      transform =  transform_in_eigen_inv.cast<float>() * transformation_centroid ;
+      Eigen::Vector3f eigenValues;
+      eigenValues<<0.25,0.25,0.25;
+      eigenValues /= static_cast<float>(cloud_->size());
+      variances(0) = sqrt(eigenValues(0));
+      variances(1) = sqrt(eigenValues(1));
+      variances(2) = sqrt(eigenValues(2));
+    }
+  //////////////////////////////////////////////////////////////////////////////////
+    if(pose_est_method_=="pca")
+    {
+      Eigen::Vector4f xyz_centroid;
+        pcl::compute3DCentroid(*cloud_, xyz_centroid);
+        Eigen::Affine3f transformation_centroid = Eigen::Affine3f::Identity();
+        transformation_centroid.translation()<<-xyz_centroid(0), -xyz_centroid(1), -xyz_centroid(2);
+        //Compute PCA
+        pcl::PCA<PointT> pca;
+        pca.setInputCloud(cloud_);
+        Eigen::Vector3f eigenValues = pca.getEigenValues();
+        Eigen::Matrix3f eigenVectors = pca.getEigenVectors();
 
-  //std::cout<<"Header at fitting: "<<cloud_->header.frame_id<<std::endl;
+        //std::cout<<"Eigen value from pca: "<<eigenValues<<std::endl;
 
+        //Aligning first PCA axis with the prealign axis
+        Eigen::Vector3f vec_aux = eigenVectors.col(0);
+        eigenVectors.col(0) = eigenVectors.col(pre_align_axis_);
+        eigenVectors.col(pre_align_axis_) = vec_aux;
 
-  geometry_msgs::Pose pose;
-  getTransformPose(cloud_, pose);
-  pose.position.x = 0;
-  pose.position.y = 0;
-  pose.position.z = 0;
-  //pose.orientation.w = 1.0;
-  //std::cout<<"Pose.x"<<pose.orientation.x<<" Pose.y"<<pose.orientation.y<<"Pose.z "<<pose.orientation.z<<"Pose.w"<<pose.orientation.w<<std::endl;
+        float aux_ev = eigenValues(0);
+        eigenValues(0) = eigenValues(pre_align_axis_);
+        eigenValues(pre_align_axis_) = aux_ev;
 
-  Eigen::Affine3d transform_in_eigen;
-  tf::poseMsgToEigen(pose, transform_in_eigen);
-  Eigen::Affine3d transform_in_eigen_inv = transform_in_eigen.inverse();
-  //std::cout<<transform_in_eigen_inv.matrix()<<std::endl;
-  //transform = transform_in_eigen.cast<float>();
-  transform =  transform_in_eigen_inv.cast<float>() * transformation_centroid ;
+        Eigen::Matrix4f transformation_pca = Eigen::Matrix4f::Identity();
 
+       for(int i =0 ;i<transformation_pca.cols()-1;++i)
+        {
+          for(int j = 0;j<transformation_pca.rows()-1;++j)
+          {
+            transformation_pca(j,i) = eigenVectors(i,j);
+          }
+        }
 
+        Eigen::Affine3f transformation_pca_affine;
+        transformation_pca_affine.matrix() = transformation_pca;
+        transform = transformation_pca_affine * transformation_centroid;
+        //transform = transformation_centroid*transformation_pca_affine ;
 
-
-
-  pcl::MomentOfInertiaEstimation<PointT> feature_extractor;
+        //Eigen::Vector3f eigenValues;
+        eigenValues /= static_cast<float>(cloud_->size());
+        variances(0) = sqrt(eigenValues(0));
+        variances(1) = sqrt(eigenValues(1));
+        variances(2) = sqrt(eigenValues(2));
+     }
+  }
+  //By moment of intertia estimation
+  /*pcl::MomentOfInertiaEstimation<PointT> feature_extractor;
   feature_extractor.setInputCloud (cloud_);
   feature_extractor.compute ();
   PointT  min_point_OBB;
@@ -99,47 +144,22 @@ void SuperquadricFitting::preAlign(Eigen::Affine3f &transform, Eigen::Vector3f &
   Eigen::EigenSolver<Eigen::Matrix4f > es(transform_2);
   std::cout<<"The eigenvalue"<<es.eigenvalues()<<std::endl;*/
 
-
-
-  //Compute PCA
-  /*pcl::PCA<PointT> pca;
-  pca.setInputCloud(cloud_);
-  Eigen::Vector3f eigenValues = pca.getEigenValues();
-  Eigen::Matrix3f eigenVectors = pca.getEigenVectors();
-
-  //std::cout<<"Eigen value from pca: "<<eigenValues<<std::endl;
-
-  //Aligning first PCA axis with the prealign axis
-  Eigen::Vector3f vec_aux = eigenVectors.col(0);
-  eigenVectors.col(0) = eigenVectors.col(pre_align_axis_);
-  eigenVectors.col(pre_align_axis_) = vec_aux;
-
-  float aux_ev = eigenValues(0);
-  eigenValues(0) = eigenValues(pre_align_axis_);
-  eigenValues(pre_align_axis_) = aux_ev;
-
-  Eigen::Matrix4f transformation_pca = Eigen::Matrix4f::Identity();
-
- for(int i =0 ;i<transformation_pca.cols()-1;++i)
-  {
-    for(int j = 0;j<transformation_pca.rows()-1;++j)
-    {
-      transformation_pca(j,i) = eigenVectors(i,j);
-    }
-  }
-
-  Eigen::Affine3f transformation_pca_affine;
-  transformation_pca_affine.matrix() = transformation_pca;
-  transform = transformation_pca_affine * transformation_centroid;*/
-  //transform = transformation_centroid*transformation_pca_affine ;
-
-  //Eigen::Vector3f eigenValues;
-  eigenValues /= static_cast<float>(cloud_->size());
-  variances(0) = sqrt(eigenValues(0));
-  variances(1) = sqrt(eigenValues(1));
-  variances(2) = sqrt(eigenValues(2));
+ ////////////////////////////////////////////////////////////////////////////////////////
 
 }
+
+bool SuperquadricFitting::set_pose_est_method(const std::string method)
+{
+  if(method == "pca" || method== "iteration")
+  {
+    pose_est_method_ = method;
+    set_method_ = true;
+    return true;
+  }
+  else
+    return false;
+}
+
 
 void SuperquadricFitting::fit_Param(sq_fitting::sq& param, double& final_error)
 {

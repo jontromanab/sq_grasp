@@ -35,6 +35,7 @@ int main(int argc, char **argv)
   nh_.getParam("cloud_topic", cloud_topic);
   nh_.getParam("output_frame", output_frame);
   nh_.getParam("workspace", params.ws_limits);
+  nh_.getParam("pose_est_method", params.pose_est_method);
   nh_.param("remove_nan", params.remove_nan, REMOVE_NAN);
   nh_.param("zmin", params.seg_params.zmin, ZMIN);
   nh_.param("zmax", params.seg_params.zmax, ZMAX);
