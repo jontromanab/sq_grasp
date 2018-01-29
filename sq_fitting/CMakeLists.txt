@@ -4,6 +4,8 @@ project(sq_fitting)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
+add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   message_generation
@@ -124,6 +126,10 @@ target_link_libraries(sampling_test_ros sampling  ${catkin_LIBRARIES})
 add_executable(sampling_test_pcd src/test/sampling_test_pcd.cpp)
 add_dependencies(sampling_test_pcd ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sampling_test_pcd sampling  ${catkin_LIBRARIES})
+
+add_executable(sampling_test_pcd_big src/test/sampling_test_pcd_big.cpp)
+add_dependencies(sampling_test_pcd_big ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(sampling_test_pcd_big sampling  ${catkin_LIBRARIES})
 
 add_executable(segmentation_test_pcd src/test/segmentation_test_pcd.cpp)
 add_dependencies(segmentation_test_pcd ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

@@ -38,7 +38,7 @@
 
 
       <param name="remove_nan" value="true" />
-      <param name="pose_est_method" value="iteration"/>
+      <param name="pose_est_method" value="pca"/>
 
   </node>
 
