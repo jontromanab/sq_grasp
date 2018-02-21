@@ -4,7 +4,7 @@
 #include<ros/ros.h>
 #include <iostream>
 #include<sq_fitting/sqArray.h>
-#include<grasp_execution/graspArr.h>
+#include<sq_grasping/graspArr.h>
 #include<sq_grasping/getGrasps.h>
 #include<sensor_msgs/PointCloud2.h>
 #include<geometry_msgs/PoseArray.h>
@@ -31,8 +31,8 @@ private:
 
   bool checkForTransform(const std::string& input_frame, const std::string& output_frame);
   void transformFrame(const std::string& input_frame, const std::string& output_frame,const geometry_msgs::Pose &pose_in, geometry_msgs::Pose& pose_out);
-  void createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::graspArr& gs);
-  void createGraspsMarkers(const grasp_execution::graspArr& grasps, visualization_msgs::MarkerArray& markers);
+  void createGrasps(const sq_fitting::sqArray& sqs , sq_grasping::graspArr& gs);
+  void createGraspsMarkers(const sq_grasping::graspArr& grasps, visualization_msgs::MarkerArray& markers);
   void sampleSQFromSQS(const sq_fitting::sqArray &sqs);
   bool serviceCallback(sq_grasping::getGrasps::Request& req, sq_grasping::getGrasps::Response& res);
   visualization_msgs::MarkerArray createGripperMarkerMoveIT(geometry_msgs::Pose pose, double opening_angle,int id);
@@ -43,7 +43,7 @@ private:
   bool show_grasp_;
 
 
-  grasp_execution::graspArr grasps_;
+  sq_grasping::graspArr grasps_;
   sq_fitting::sqArray sqs_;
   ros::NodeHandle nh_;
   ros::Publisher superquadrics_pub_;

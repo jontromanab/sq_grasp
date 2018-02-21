@@ -7,7 +7,6 @@ add_compile_options(-fext-numeric-literals)
 
 find_package(catkin REQUIRED COMPONENTS
     sq_fitting
-    grasp_execution
     cmake_modules
     roscpp
     message_generation
@@ -15,10 +14,19 @@ find_package(catkin REQUIRED COMPONENTS
     pcl_ros
     pcl_conversions
     sensor_msgs
-    tf2)
+    tf2
+    moveit_ros_planning_interface
+    moveit_core
+)
 
 
 find_package(Boost REQUIRED COMPONENTS system)
+
+add_message_files(
+   FILES
+   grasp.msg
+   graspArr.msg
+ )
 
 
 ## Generate services in the 'srv' folder
@@ -28,7 +36,13 @@ find_package(Boost REQUIRED COMPONENTS system)
 
  )
 
-generate_messages(DEPENDENCIES geometry_msgs std_msgs grasp_execution)
+## Generate added messages and services with any dependencies listed here
+ generate_messages(
+   DEPENDENCIES
+   std_msgs
+   geometry_msgs
+
+ )
 
 catkin_package(
   INCLUDE_DIRS
@@ -67,9 +81,9 @@ add_executable(sq_grasping_node src/nodes/sq_grasping_node.cpp)
 add_dependencies(sq_grasping_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sq_grasping_node sq_grasping  ${catkin_LIBRARIES})
 
-add_executable(execute_grasps_node src/nodes/execute_grasps_node.cpp)
-add_dependencies(execute_grasps_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(execute_grasps_node sq_grasping  ${catkin_LIBRARIES})
+#add_executable(execute_grasps_node src/nodes/execute_grasps_node.cpp)
+#add_dependencies(execute_grasps_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#target_link_libraries(execute_grasps_node sq_grasping  ${catkin_LIBRARIES})
 
 
 add_executable(get_grasp_client src/test/get_grasp_client.cpp)

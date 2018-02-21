@@ -4,7 +4,7 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
 
-#include<iri_tos_supervoxels/object_segmentation.h>
+//#include<iri_tos_supervoxels/object_segmentation.h>
 
 #include <pcl/filters/radius_outlier_removal.h>
 
@@ -34,7 +34,7 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const 
   center_pub_ = node.advertise<visualization_msgs::Marker>("visualization_marker",10);
   transformed_pub_ = node.advertise<sensor_msgs::PointCloud2>("trnsformed_cloud",10);
 
-  client_=node.serviceClient<iri_tos_supervoxels::object_segmentation>("/iri_tos_supervoxels_alg/object_segmentation");
+  //client_=node.serviceClient<iri_tos_supervoxels::object_segmentation>("/iri_tos_supervoxels_alg/object_segmentation");
  //client_param = node.serviceClient<sq_fitting::get_sq_param>("/get_sq_param");
   service_ = node.advertiseService("sqs", &SQFitter::serviceCallback, this);
 
@@ -66,7 +66,7 @@ void SQFitter::cloud_callback(const sensor_msgs::PointCloud2ConstPtr &input)
   filterCloud(this->transformed_cloud_, this->filtered_cloud_);
   pcl::toROSMsg(*filtered_cloud_, filtered_cloud_ros_);
 
-  getSegmentedObjectsIRI(this->filtered_cloud_);
+  getSegmentedObjects(this->filtered_cloud_);
   pcl::toROSMsg(*segmented_objects_cloud_, objects_cloud_);
 
 
@@ -258,7 +258,7 @@ void SQFitter::mirror_cloud(CloudPtr &cloud_in, CloudPtr &cloud_out)
 
 }
 
-void SQFitter::getSegmentedObjectsIRI(CloudPtr &cloud)
+/*void SQFitter::getSegmentedObjectsIRI(CloudPtr &cloud)
 {
   CloudPtr cloud_t(new PointCloud);
   CloudPtr segmented_objects_cloud_ir(new PointCloud);
@@ -353,7 +353,7 @@ void SQFitter::getSegmentedObjectsIRI(CloudPtr &cloud)
   else
     ROS_ERROR("Failed to call service");
 
-}
+}*/
 
 void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs::Pose& pose_out)
 {

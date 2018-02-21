@@ -2,7 +2,7 @@
 #define CREATE_GRASPS_H
 
 #include<sq_fitting/sqArray.h>
-#include<grasp_execution/graspArr.h>
+#include<sq_grasping/graspArr.h>
 #include<geometry_msgs/Pose.h>
 #include<moveit/move_group_interface/move_group.h>
 #include<sensor_msgs/PointCloud2.h>
@@ -23,17 +23,17 @@ public:
                double object_padding, double approach_value);
   ~CreateGrasps();
   void sample_grasps();
-  void getGrasps(grasp_execution::graspArr &grasps);
+  void getGrasps(sq_grasping::graspArr &grasps);
 private:
   ros::NodeHandle nh_;
   sq_fitting::sqArray sqArr_;
-  grasp_execution::graspArr init_grasps_;
+  sq_grasping::graspArr init_grasps_;
   std::string frame_id_;
   std::string ee_name_;
 
   Eigen::Affine3d transform_;
 
-  bool findGraspFromSQ(const sq_fitting::sq& sq,grasp_execution::grasp& grasps);
+  bool findGraspFromSQ(const sq_fitting::sq& sq, sq_grasping::grasp& grasps);
 
   void findApproachPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
@@ -46,16 +46,16 @@ private:
   void findDirection(const geometry_msgs::Pose& pose, geometry_msgs::Vector3& dir);
 
   void createInitGrasps(const sq_fitting::sq& sq,
-                        std::vector<grasp_execution::grasp>& grasps);
+                        std::vector<sq_grasping::grasp>& grasps);
 
-  void filterGraspsByOpenningAngle(const std::vector<grasp_execution::grasp>& grasps_in,
-                                   std::vector<grasp_execution::grasp>& grasps_out);
+  void filterGraspsByOpenningAngle(const std::vector<sq_grasping::grasp>& grasps_in,
+                                   std::vector<sq_grasping::grasp>& grasps_out);
 
-  bool filterGraspsByIK(const std::vector<grasp_execution::grasp>& grasps_in,
-                        std::vector<grasp_execution::grasp>& grasps_out);
+  bool filterGraspsByIK(const std::vector<sq_grasping::grasp>& grasps_in,
+                        std::vector<sq_grasping::grasp>& grasps_out);
 
-  void filterGraspByDistance(const sq_fitting::sq& sq, const std::vector<grasp_execution::grasp>& grasps_in,
-                               grasp_execution::grasp& grasp_out);
+  void filterGraspByDistance(const sq_fitting::sq& sq, const std::vector<sq_grasping::grasp>& grasps_in,
+                               sq_grasping::grasp& grasp_out);
 
   double getDistanceFromRobot(geometry_msgs::Pose& pose);
 
@@ -63,7 +63,7 @@ private:
 
   void TransformPose(const geometry_msgs::Pose& pose_in, geometry_msgs::Pose& pose_out);
 
-  bool isGraspReachable(const grasp_execution::grasp grasp);
+  bool isGraspReachable(const sq_grasping::grasp grasp);
   //void getTable(const sensor_msgs::PointCloud2ConstPtr &table_msg);
 
   std::string group_name_;

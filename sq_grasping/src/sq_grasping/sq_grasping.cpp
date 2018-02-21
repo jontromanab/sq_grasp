@@ -10,7 +10,7 @@
 #include<sq_grasping/create_grasps.h>
 #include<visualization_msgs/MarkerArray.h>
 
-#include<grasp_execution/create_gripper_marker.h>
+//#include<sq_grasping/create_gripper_marker.h>
 
 
 
@@ -133,7 +133,7 @@ void SQGrasping::transformFrame(const std::string& input_frame, const std::strin
     }
   }
 
-void SQGrasping::createGraspsMarkers(const grasp_execution::graspArr &grasps, visualization_msgs::MarkerArray& markers)
+void SQGrasping::createGraspsMarkers(const sq_grasping::graspArr &grasps, visualization_msgs::MarkerArray& markers)
 {
   markers.markers.resize(0);
   for (int i=0;i<grasps.grasps.size();++i)
@@ -157,7 +157,7 @@ void SQGrasping::createGraspsMarkers(const grasp_execution::graspArr &grasps, vi
   }
 }
 
-void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::graspArr& gs)
+void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , sq_grasping::graspArr& gs)
 {
   sq_fitting::sqArray new_sqArr;
   //std::cout<<"Header before: "<<sqs.header.frame_id<<std::endl;
@@ -188,7 +188,7 @@ void SQGrasping::createGrasps(const sq_fitting::sqArray& sqs , grasp_execution::
                                           approach_value_);
   
   create->sample_grasps();
-  grasp_execution::graspArr grasps;
+  sq_grasping::graspArr grasps;
   create->getGrasps(grasps);
   delete create;
 
