@@ -108,13 +108,6 @@ void lccp_segmentation::init(PointCloud input_cloud, SegmentationParameters &opt
   this->initialized_ = true;
 }
 
-void lccp_segmentation::init(PointCloud input_cloud){
-  this->cloud_ = input_cloud.makeShared();
-  this->detected_objects_.resize(0);
-  set_default_parameters();
-  this->initialized_ = true;
-}
-
 void lccp_segmentation::set_parameters(const SegmentationParameters &opt){
   this->disable_transform = opt.disable_transform;
   this->voxel_resolution = opt.voxel_resolution;
@@ -153,154 +146,16 @@ void lccp_segmentation::set_default_parameters(){
   this->th_points = this->TH_POINTS;
 }
 
-void lccp_segmentation::reset(){
-  this->cloud_->points.resize(0);
+void lccp_segmentation::init(PointCloud input_cloud){
+  this->cloud_ = input_cloud.makeShared();
   this->detected_objects_.resize(0);
-  this->lccp_labeled_cloud_->points.resize(0);
-  this->labeled_voxel_cloud_->points.resize(0);
-  this->normal_cloud_->points.resize(0);
-  this->supervoxel_clusters_.clear();
-  this->supervoxel_adjacency_.clear();
   set_default_parameters();
-}
-
-
-CloudPtr lccp_segmentation::get_input_cloud(){
-  return this->cloud_;
+  this->initialized_ = true;
 }
 
 CloudPtr lccp_segmentation::get_plane_cloud(){
   return this->table_plane_cloud_;
 }
-
-PointCloudl lccp_segmentation::get_labeled_voxel_cloud(){
-  return *(this->labeled_voxel_cloud_);
-}
-
-std::multimap<uint32_t, uint32_t> lccp_segmentation::get_supervoxel_adjacency(){
-  return this->supervoxel_adjacency_;
-}
-
-std::map<uint32_t, pcl::Supervoxel<PointT>::Ptr> lccp_segmentation::get_supervoxel_clusters(){
-  return this->supervoxel_clusters_;
-}
-
-pcl::PointCloud<pcl::PointNormal> lccp_segmentation::get_normal_cloud(){
-  return *(this->normal_cloud_);
-}
-
-void lccp_segmentation::set_disable_transform(bool disable_transform_in){
-  this->disable_transform = disable_transform_in;
-}
-
-void lccp_segmentation::set_voxel_resolution(double voxel_resolution_in){
-  this->voxel_resolution = voxel_resolution_in;
-}
-
-void lccp_segmentation::set_seed_resolution(double seed_resolution_in){
-  this->seed_resolution = seed_resolution_in;
-}
-
-void lccp_segmentation::set_color_importance(double color_importance_in){
-  this->color_importance = color_importance_in;
-}
-
-void lccp_segmentation::set_spatial_importance(double spatial_importance_in){
-  this->spatial_importance = spatial_importance_in;
-}
-
-void lccp_segmentation::set_normal_importance(double normal_importance_in){
-  this->normal_importance = normal_importance_in;
-}
-
-void lccp_segmentation::set_concavity_tolerance_threshold(double concavity_tolerance_threshold_in){
-  this->concavity_tolerance_threshold = concavity_tolerance_threshold_in;
-}
-
-void lccp_segmentation::set_smoothness_threshold(double smoothness_threshold_in){
-  this->smoothness_threshold = smoothness_threshold_in;
-}
-
-void lccp_segmentation::set_min_segment_size(int min_segment_size_in){
-  this->min_segment_size = min_segment_size_in;
-}
-
-void lccp_segmentation::set_use_extended_convexity(bool use_extended_convexity_in){
-  this->use_extended_convexity = use_extended_convexity_in;
-}
-
-void lccp_segmentation::set_use_sanity_criterion(bool use_sanity_criterion_in){
-  this->use_sanity_criterion = use_sanity_criterion_in;
-}
-
-void lccp_segmentation::set_zmin(double zmin_in){
-  this->zmin = zmin_in;
-}
-
-void lccp_segmentation::set_zmax(double zmax_in){
-  this->zmax = zmax_in;
-}
-
-void lccp_segmentation::set_th_points(int th_points_in){
-  this->th_points = th_points_in;
-}
-
-bool lccp_segmentation::get_disable_transform(){
-  return this->disable_transform;
-}
-
-double lccp_segmentation::get_voxel_resolution(){
-  return this->voxel_resolution;
-}
-
-double lccp_segmentation::get_seed_resolution(){
-  return this->seed_resolution;
-}
-
-double lccp_segmentation::get_color_importance(){
-  return this->color_importance;
-}
-
-double lccp_segmentation::get_spatial_importance(){
-  return this->spatial_importance;
-}
-
-double lccp_segmentation::get_normal_importance(){
-  return this->normal_importance;
-}
-
-double lccp_segmentation::get_concavity_tolerance_threshold(){
-  return this->concavity_tolerance_threshold;
-}
-
-double lccp_segmentation::get_smoothness_threshold(){
-  return this->smoothness_threshold;
-}
-
-int lccp_segmentation::get_min_segment_size(){
-  return this->min_segment_size;
-}
-
-bool lccp_segmentation::get_use_extended_convexity(){
-  return this->use_extended_convexity;
-}
-
-bool lccp_segmentation::get_use_sanity_criterion(){
-  return this->use_sanity_criterion;
-}
-
-double lccp_segmentation::get_zmin(){
-  return this->zmin;
-}
-
-double lccp_segmentation::get_zmax(){
-  return this->zmax;
-}
-
-int lccp_segmentation::get_th_points(){
-  return this->th_points;
-}
-
 
 void lccp_segmentation::detectObjectsOnTable(CloudPtr cloud, double zmin, double zmax, pcl::PointIndices::Ptr objectIndices, bool filter_input_cloud){
   //objects for storing point clouds

@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   eigen_conversions
   sensor_msgs
+  std_msgs
 
 )
 

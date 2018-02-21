@@ -1,8 +1,6 @@
 #ifndef SEGMENTATION_H
 #define SEGMENTATION_H
 
-#include<pcl/point_types.h>
-#include<pcl/point_cloud.h>
 #include<pcl/segmentation/supervoxel_clustering.h>
 #include<pcl/segmentation/sac_segmentation.h>
 #include<pcl/segmentation/extract_polygonal_prism_data.h>
@@ -13,8 +11,11 @@
 #include<pcl/sample_consensus/model_types.h>
 #include<pcl/filters/extract_indices.h>
 #include<pcl/surface/concave_hull.h>
-#include<pcl_conversions/pcl_conversions.h>
 #include<ros/ros.h>
+#include<pcl_conversions/pcl_conversions.h>
+#include<pcl/point_cloud.h>
+#include<pcl/point_types.h>
+#include<sensor_msgs/PointCloud2.h>
 #include<sq_fitting/segment_object.h>
 
 ///typedefs
@@ -239,6 +240,7 @@ protected:
    */
   void set_parameters(const SegmentationParameters& opt);
 
+
   /**
    * @brief detectObjectsOnTable detects objects on table
    * @param cloud input cloud
@@ -276,17 +278,6 @@ public:
   void init(PointCloud input_cloud);
 
   /**
-   * @brief reset resets all public members
-   */
-  void reset();
-
-  /**
-   * @brief get_default_parameters get the default parameters of the algorithm
-   * @return supervoxel parameters
-   */
-  SegmentationParameters get_default_parameters();
-
-  /**
    * @brief segment Detects and segments objects on the table
    * @return True if there is atleast one object on the table, else false
    */
@@ -305,114 +296,10 @@ public:
   std::vector<PointCloud> get_segmented_objects_simple();
 
   /**
-   * @brief print_parameters prints the parameters of the algorithm
-   */
-  void print_parameters();
-
-  /**
-   * @brief get_input_cloud returns input cloud
-   * @return pointcloud
-   */
-  CloudPtr get_input_cloud();
-
-  /**
    * @brief get_plane_cloud returns plane cloud
    * @return pointcloud
    */
   CloudPtr get_plane_cloud();
-
-  /**
-   * @brief get_labeled_voxel_cloud returns labeled voxel cloud
-   * @return PointCloud<PointXYZL>
-   */
-  PointCloudl get_labeled_voxel_cloud();
-
-  /**
-   * @brief get_supervoxel_adjacency returns supervoxel adjacency
-   */
-  std::multimap<uint32_t, uint32_t> get_supervoxel_adjacency();
-
-  /**
-   * @brief get_supervoxel_clusters returns supervoxel clusters
-   */
-  std::map<uint32_t, pcl::Supervoxel<PointT>::Ptr> get_supervoxel_clusters();
-
-  /**
-   * @brief get_normal_cloud returns normal point cloud of the supervoxels
-   * @return
-   */
-  pcl::PointCloud<pcl::PointNormal> get_normal_cloud();
-
-  /**
-   * @brief get_plane_coefficients returns table plane coefficients
-   * @return
-   */
-  pcl::ModelCoefficients get_plane_coefficients();
-
-  // setting parameters
-  ///set disable transform
-  void set_disable_transform(bool disable_transform_in);
-  ///set voxel resolution
-  void set_voxel_resolution(double voxel_resolution_in);
-  ///set seed resolution
-  void set_seed_resolution(double seed_resolution_in);
-  ///set color importance
-  void set_color_importance(double color_importance_in);
-  ///set spatial importance
-  void set_spatial_importance(double spatial_importance_in);
-  ///set normal importance
-  void set_normal_importance(double normal_importance_in);
-
-  ///set concavity_tolerance_threshold
-  void set_concavity_tolerance_threshold(double concavity_tolerance_threshold_in);
-  ///set smoothness threshold
-  void set_smoothness_threshold(double smoothness_threshold_in);
-  ///set min segment size
-  void set_min_segment_size(int min_segment_size_in);
-  ///set use extended convexity
-  void set_use_extended_convexity(bool use_extended_convexity_in);
-  ///set use sanity criterion
-  void set_use_sanity_criterion(bool use_sanity_criterion_in);
-
-  /// set zmin
-  void set_zmin(double zmin_in);
-  ///set zmax
-  void set_zmax(double zmax_in);
-  ///set th points
-  void set_th_points(int th_points_in);
-
-
-  // Getting parameters
-  ///get disable transform
-  bool get_disable_transform();
-  ///get voxel resolution
-  double get_voxel_resolution();
-  ///get seed resolution
-  double get_seed_resolution();
-  ///get color importance
-  double get_color_importance();
-  ///get spatial importance
-  double get_spatial_importance();
-  ///get normal importance
-  double get_normal_importance();
-
-  ///get concavity tolerance threshold
-  double get_concavity_tolerance_threshold();
-  ///get smoothness threshold
-  double get_smoothness_threshold();
-  ///get min segment size
-  int get_min_segment_size();
-  ///get use extended convexity
-  bool get_use_extended_convexity();
-  ///get use sanity criterion
-  bool get_use_sanity_criterion();
-
-  ///get zmin
-  double get_zmin();
-  ///get zmax
-  double get_zmax();
-  ///get th_points
-  int get_th_points();
 };
 
 
