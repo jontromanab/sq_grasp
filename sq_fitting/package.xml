@@ -43,8 +43,9 @@
   <build_depend>roscpp</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>pcl_conversions</build_depend>
-  <!--build_depend>libpcl-all-dev</build_depend-->
   <build_depend>pcl_ros</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
 
 
 
@@ -53,6 +54,8 @@
   <run_depend>libpcl-all</run_depend>
   <run_depend>pcl_conversions</run_depend>
   <run_depend>pcl_ros</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
 
 
 

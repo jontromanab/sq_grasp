@@ -36,6 +36,7 @@ add_service_files(
    FILES
    get_sq_param.srv
    get_sq.srv
+   segment_object.srv
 
  )
 
@@ -58,7 +59,6 @@ catkin_package(
       fitting
       utils
       segmentation
-      #segmentationfloor
       sq_fitter
   CATKIN_DEPENDS roscpp message_runtime
   DEPENDS system_lib
@@ -87,14 +87,12 @@ add_library(utils  src/sq_fitting/utils.cpp)
 add_library(sampling  src/sq_fitting/sampling.cpp)
 add_library(fitting  src/sq_fitting/fitting.cpp)
 add_library(segmentation  src/sq_fitting/segmentation.cpp)
-#add_library(segmentationfloor  src/sq_fitting/segmentationfloor.cpp)
 add_library(sq_fitter  src/sq_fitting/sq_fitter.cpp)
 
 target_link_libraries(utils  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS} )
 target_link_libraries(sampling utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(fitting utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(segmentation  utils ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
-#target_link_libraries(segmentationfloor  ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 target_link_libraries(sq_fitter segmentation fitting utils sampling ${catkin_LIBRARIES}  ${PCL_LIBRARY_DIRS})
 
 
@@ -111,11 +109,6 @@ target_link_libraries(sq_fitter_node sq_fitter   ${catkin_LIBRARIES})
 #add_executable(get_depth2rgb_cloud src/nodes/get_depth2rgb_cloud.cpp)
 #add_dependencies(get_depth2rgb_cloud ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 #target_link_libraries(get_depth2rgb_cloud   ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES}  ${freenect2_LIBRARY})
-
-add_executable(fitting_service src/sq_fitting/fitting_service.cpp)
-add_dependencies(fitting_service ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(fitting_service  fitting ${catkin_LIBRARIES}  )
-
 
 
 #executables for tests
