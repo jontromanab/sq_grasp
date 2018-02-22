@@ -6,10 +6,10 @@
     <!--param name="cloud_topic" value="/kinect2/sd/points" /-->
     <!--param name="cloud_topic" value="/head_mount_kinect/depth_registered/points" /-->
     <param name="cloud_topic" value="/camera/depth_registered/points" />
-    <param name="output_frame" value = "/world" />
+    <param name="output_frame" value = "world" />
     <!--rosparam param = "workspace"> [-0.3, 0.19,  -1, 0.25, 0.5, 2 ]</rosparam-->
     <!-- for in world frame -->
-    <rosparam param = "workspace"> [0, 0.8,  -0.4, 0.4, 0, 10 ]</rosparam>
+    <rosparam param = "workspace"> [0, 1.5, -0.8, 0.6, 0, 1.0 ]</rosparam>
     <!-- for PR2 kinect -->
     <!--rosparam param = "workspace"> [0.5, 1.2,  -0.3, 0.4, 0.2, 2 ]</rosparam-->
     <param name="remove_nan" value="true" />

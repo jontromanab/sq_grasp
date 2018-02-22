@@ -58,10 +58,10 @@ private:
   sensor_msgs::PointCloud2 filtered_cloud_ros_;
   sensor_msgs::PointCloud2 input_msg_;
   sensor_msgs::PointCloud2 cut_cloud_ros_;
-  sensor_msgs::PointCloud2 transformed_cloud_ros_;
+
 
   CloudPtr cloud_;
-  CloudPtr transformed_cloud_;
+
   CloudPtr filtered_cloud_;
   CloudPtr table_plane_cloud_;
   CloudPtr segmented_objects_cloud_;
