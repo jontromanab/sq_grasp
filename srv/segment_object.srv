@@ -1,4 +1,0 @@
-sensor_msgs/PointCloud2 input_cloud
----
-sensor_msgs/PointCloud2[] object_cloud
-sensor_msgs/PointCloud2 plane_cloud
