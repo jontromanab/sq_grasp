@@ -75,7 +75,7 @@ void SegmentationClient::publishClouds(){
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "segmentation_lccp_client");
+  ros::init(argc, argv, "segmentation_client");
   ros::NodeHandle nh;
   std::string segmentation_service, cloud_topic;
   nh.param("segmentation_client/segmentation_service",segmentation_service, std::string("segmentation_service"));

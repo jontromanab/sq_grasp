@@ -1,45 +1,40 @@
 #include<sq_fitting/sq_fitter.h>
-#include<tf/transform_listener.h>
+#include <tf/transform_listener.h>
 #include <Eigen/Eigen>
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
-
-//#include<iri_tos_supervoxels/object_segmentation.h>
-
 #include <pcl/filters/radius_outlier_removal.h>
+#include <pcl/filters/crop_box.h>
 
 #include <pcl/filters/median_filter.h>
 #include <sq_fitting/get_sq_param.h>
-#include<visualization_msgs/Marker.h>
+#include <visualization_msgs/Marker.h>
+#include <sq_fitting/segment_object.h>
 
-#include<pcl/filters/crop_box.h>
 
 
 
 
 SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const std::string &output_frame, const SQFitter::Parameters &params)
-  : table_plane_cloud_(new PointCloud), segmented_objects_cloud_(new PointCloud), objects_on_table_(new PointCloud),
+  : nh_(node), table_plane_cloud_(new PointCloud), segmented_objects_cloud_(new PointCloud), objects_on_table_(new PointCloud),
   cloud_(new PointCloud), transformed_cloud_(new PointCloud), filtered_cloud_(new PointCloud), cut_cloud_(new PointCloud), output_frame_(output_frame)
 {
 
-  cloud_sub_ = node.subscribe(cloud_topic, 1, &SQFitter::cloud_callback, this);
+  cloud_sub_ = nh_.subscribe(cloud_topic, 1, &SQFitter::cloud_callback, this);
 
-  table_pub_ = node.advertise<sensor_msgs::PointCloud2>("table",10);
-  objects_pub_ = node.advertise<sensor_msgs::PointCloud2>("segmented_objects",10);
-  superquadrics_pub_ = node.advertise<sensor_msgs::PointCloud2>("superquadrics",10);
-  filtered_cloud_pub_ = node.advertise<sensor_msgs::PointCloud2>("filtered_cloud",10);
-  poses_pub_ = node.advertise<geometry_msgs::PoseArray>("sq_poses",10);
-  cut_cloud_pub_ = node.advertise<sensor_msgs::PointCloud2>("cut_cloud", 10);
-  //sqs_pub_ = node.advertise<sq_fitting::sqArray>("sqs",10);
-  center_pub_ = node.advertise<visualization_msgs::Marker>("visualization_marker",10);
-  transformed_pub_ = node.advertise<sensor_msgs::PointCloud2>("trnsformed_cloud",10);
+  table_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("table",10);
+  objects_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("segmented_objects",10);
+  superquadrics_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("superquadrics",10);
+  filtered_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("filtered_cloud",10);
+  poses_pub_ = nh_.advertise<geometry_msgs::PoseArray>("sq_poses",10);
+  cut_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("cut_cloud", 10);
+  center_pub_ = nh_.advertise<visualization_msgs::Marker>("visualization_marker",10);
+  transformed_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("trnsformed_cloud",10);
 
-  //client_=node.serviceClient<iri_tos_supervoxels::object_segmentation>("/iri_tos_supervoxels_alg/object_segmentation");
- //client_param = node.serviceClient<sq_fitting::get_sq_param>("/get_sq_param");
-  service_ = node.advertiseService("sqs", &SQFitter::serviceCallback, this);
+  client_= nh_.serviceClient<sq_fitting::segment_object>("/segmentation_service");
+  service_ = nh_.advertiseService("sqs", &SQFitter::serviceCallback, this);
 
   this->sq_param_ = params;
-  //this->seg_param_ = params.seg_params;
   this->initialized = true;
   Objects_.resize(0);
 }
@@ -55,25 +50,27 @@ bool SQFitter::serviceCallback(sq_fitting::get_sq::Request &req, sq_fitting::get
           <<table_center_.z<<std::endl;
 }
 
-void SQFitter::cloud_callback(const sensor_msgs::PointCloud2ConstPtr &input)
+void SQFitter::cloud_callback(const sensor_msgs::PointCloud2& input)
 {
-  std::cout<<"I am calling cloud"<<std::endl;
-  pcl::fromROSMsg(*input, *cloud_);
-  this->input_msg_ = *input;
-  transformFrameCloud(this->cloud_, this->transformed_cloud_);
-  pcl::toROSMsg(*transformed_cloud_, transformed_cloud_ros_);
+  ROS_INFO("Calling Cloud");
+  pcl::fromROSMsg(input, *cloud_);
+  //this->input_msg_ = input;
+  //ros::ServiceClient client = nh_.serviceClient<sq_fitting::segment_object>("/segmentation_service");
 
-  filterCloud(this->transformed_cloud_, this->filtered_cloud_);
-  pcl::toROSMsg(*filtered_cloud_, filtered_cloud_ros_);
+  //transformFrameCloud(this->cloud_, this->transformed_cloud_);
+  //pcl::toROSMsg(*transformed_cloud_, transformed_cloud_ros_);
 
-  getSegmentedObjects(this->filtered_cloud_);
-  pcl::toROSMsg(*segmented_objects_cloud_, objects_cloud_);
+  //filterCloud(this->transformed_cloud_, this->filtered_cloud_);
+  //pcl::toROSMsg(*filtered_cloud_, filtered_cloud_ros_);
+
+  getSegmentedObjects(this->cloud_);
+  //pcl::toROSMsg(*segmented_objects_cloud_, objects_cloud_);
 
 
-  pcl::toROSMsg(*cut_cloud_, cut_cloud_ros_);
+  //pcl::toROSMsg(*cut_cloud_, cut_cloud_ros_);
 
-  getSuperquadricParameters(this->params_);
-  sampleSuperquadrics(this->params_);
+  //getSuperquadricParameters(this->params_);
+  //sampleSuperquadrics(this->params_);
 }
 
 void SQFitter::transformFrameCloud(const CloudPtr& cloud_in, CloudPtr& cloud_out)
@@ -258,103 +255,6 @@ void SQFitter::mirror_cloud(CloudPtr &cloud_in, CloudPtr &cloud_out)
 
 }
 
-/*void SQFitter::getSegmentedObjectsIRI(CloudPtr &cloud)
-{
-  CloudPtr cloud_t(new PointCloud);
-  CloudPtr segmented_objects_cloud_ir(new PointCloud);
-  CloudPtr cut_cloud_ir(new PointCloud);
-  transformFrameCloudBack(cloud, cloud_t);
-
-  sensor_msgs::PointCloud2 ros_cloud;
-  pcl::toROSMsg(*cloud_t, ros_cloud);
-  iri_tos_supervoxels::object_segmentation srv;
-  srv.request.point_cloud = ros_cloud;
-
-  if(client_.call(srv))
-  {
-    table_cloud_ = srv.response.plane_cloud;
-    std::cout<<"Points in table cloud"<<table_cloud_.data.size()<<std::endl;
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr table_cloud_pcl(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr table_cloud_pcl_trns(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::fromROSMsg(table_cloud_, *table_cloud_pcl);
-    transformFrameCloud(table_cloud_pcl, table_cloud_pcl_trns);
-    double x, y,z;
-    getCenter(table_cloud_pcl_trns, x, y, z);
-    table_center_.x = x;
-    table_center_.y = y;
-    table_center_.z = z;
-    std::cout<<"We found : "<<srv.response.objects.objects.size()<<" objects"<<std::endl;
-    segmented_objects_cloud_->points.resize(0);
-    cut_cloud_->points.resize(0);
-    Objects_.resize(0);
-    for(int i=0;i<srv.response.objects.objects.size();++i){
-      PointCloud::Ptr tmp(new PointCloud); //Getting individual object cloud
-      PointCloud::Ptr before_mirror_ir(new PointCloud);
-      PointCloud::Ptr before_mirror(new PointCloud);
-      pcl::fromROSMsg(srv.response.objects.objects[i],*before_mirror_ir);
-      before_mirror_ir->width = before_mirror_ir->points.size();
-      before_mirror_ir->height = 1;
-      before_mirror_ir->is_dense = true;
-
-
-      transformFrameCloud(before_mirror_ir, before_mirror);
-
-
-      PointCloud::Ptr after_radius_outlier(new PointCloud);
-      //filter_StatOutlier(before_mirror, tmp);
-      filter_RadiusOutlier(before_mirror, after_radius_outlier);
-      filter_StatOutlier(after_radius_outlier, tmp);
-
-      PointCloud::Ptr mirror_tmp(new PointCloud);
-      PointCloud::Ptr mirror_filter(new PointCloud);
-      mirror_cloud(tmp, mirror_tmp);
-
-      Objects_.push_back(mirror_tmp);
-      float r,g,b;
-      r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-      g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-      b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-      for(int j=0;j<before_mirror->points.size();++j){
-        pcl::PointXYZRGB temp_point;
-        temp_point.x = before_mirror->points.at(j).x;
-        temp_point.y = before_mirror->points.at(j).y;
-        temp_point.z = before_mirror->points.at(j).z;
-        temp_point.r = r*255;
-        temp_point.g = g*255;
-        temp_point.b = b*255;
-        segmented_objects_cloud_->points.push_back(temp_point);
-      }
-
-      for(int j=0;j<mirror_tmp->points.size();++j){
-        pcl::PointXYZRGB temp_point;
-        temp_point.x = mirror_tmp->points.at(j).x;
-        temp_point.y = mirror_tmp->points.at(j).y;
-        temp_point.z = mirror_tmp->points.at(j).z;
-        temp_point.r = r*255;
-        temp_point.g = g*255;
-        temp_point.b = b*255;
-        cut_cloud_->points.push_back(temp_point);
-      }
-
-    }
-
-    segmented_objects_cloud_->header.frame_id = output_frame_;
-    segmented_objects_cloud_->width = segmented_objects_cloud_->points.size();
-    segmented_objects_cloud_->height = 1;
-    segmented_objects_cloud_->is_dense = true;
-
-    cut_cloud_->width = cut_cloud_->points.size();
-    cut_cloud_->height = 1;
-    cut_cloud_->is_dense = true;
-    cut_cloud_->header.frame_id = output_frame_;
-
-  }
-
-  else
-    ROS_ERROR("Failed to call service");
-
-}*/
-
 void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs::Pose& pose_out)
 {
 
@@ -401,36 +301,17 @@ void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs:
 
 void SQFitter::getSegmentedObjects(CloudPtr& cloud)
 {
-
-  /*Segmentation* seg = new Segmentation(cloud, this->seg_param_);
-  seg->segment();
-
-  seg->getTablecloud(table_plane_cloud_);
-  pcl::toROSMsg(*table_plane_cloud_, table_cloud_);
-  table_cloud_.header.seq = 1;
-  table_cloud_.header.frame_id = this->input_msg_.header.frame_id;
-  table_cloud_.header.stamp = ros::Time::now();
-
-  seg->getObjectsOnTable(objects_on_table_);
-  pcl::toROSMsg(*objects_on_table_, objects_on_table_cloud_);
-  objects_on_table_cloud_.header.seq = 1;
-  objects_on_table_cloud_.header.frame_id = this->input_msg_.header.frame_id;
-  objects_on_table_cloud_.header.stamp = ros::Time::now();
-
-  seg->getObjectsCloud(segmented_objects_cloud_);
-  pcl::toROSMsg(*segmented_objects_cloud_, objects_cloud_);
-  objects_cloud_.header.seq = 1;
-  objects_cloud_.header.frame_id = this->input_msg_.header.frame_id;
-  objects_cloud_.header.stamp = ros::Time::now();
-
-  //seg->getCutCloud(cut_cloud_);
-  pcl::toROSMsg(*cut_cloud_, cut_cloud_ros_);
-  cut_cloud_ros_.header.seq = 1;
-  cut_cloud_ros_.header.frame_id = this->input_msg_.header.frame_id;
-  cut_cloud_ros_.header.stamp = ros::Time::now();
-
-
-  seg->getObjects(Objects_);*/
+  sensor_msgs::PointCloud2 cloud_msg;
+  pcl::toROSMsg(*cloud, cloud_msg);
+  sq_fitting::segment_object srv;
+  srv.request.input_cloud = cloud_msg;
+  if(client_.call(srv)){
+    std::cout<<"Calling segmentation service:"<<std::endl;
+    table_cloud_ = srv.response.plane_cloud;
+    std::cout<<"frame_id: "<<table_cloud_.header.frame_id<<std::endl;
+  }
+  else
+    std::cout<<"Some problem in service"<<std::endl;
 }
 
 void SQFitter::getSuperquadricParameters(std::vector<sq_fitting::sq>& params)
@@ -536,7 +417,7 @@ void SQFitter::fit()
   if(this->initialized = true)
   {
     ros::Rate rate(1);
-    ROS_INFO("Fitting superquadrics");
+    //ROS_INFO("Fitting superquadrics");
     while(ros::ok())
     {
       publishClouds();

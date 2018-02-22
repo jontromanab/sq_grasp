@@ -16,7 +16,6 @@ class SQFitter
 public:
   struct Parameters
   {
-    //Segmentation::Parameters seg_params;
     std::vector<double> ws_limits;
     bool remove_nan;
     std::string pose_est_method;
@@ -27,11 +26,10 @@ public:
 
 
 private:
-  void cloud_callback(const sensor_msgs::PointCloud2ConstPtr& input);
+  void cloud_callback(const sensor_msgs::PointCloud2& input);
   void filterCloud(const CloudPtr& cloud, CloudPtr& filtered_cloud);
   //void filterCloud2(const CloudPtr& cloud, CloudPtr& filtered_cloud);
   void getSegmentedObjects(CloudPtr& cloud);
-  void getSegmentedObjectsIRI(CloudPtr& cloud);
   void getSuperquadricParameters(std::vector<sq_fitting::sq>& params);
   void sampleSuperquadrics(const std::vector<sq_fitting::sq>& params);
   void publishClouds();
@@ -92,12 +90,13 @@ private:
 
 
   SQFitter::Parameters sq_param_;
-  //Segmentation::Parameters seg_param_;
   sq_fitting::sqArray sqArr_;
   bool initialized;
   std::string output_frame_;
   ros::ServiceServer service_;
   geometry_msgs::Vector3 table_center_;
+
+  ros::NodeHandle nh_;
 
 };
 

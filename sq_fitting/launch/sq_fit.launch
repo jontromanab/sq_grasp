@@ -1,47 +1,15 @@
 <launch>
-
-   <!--Now apply segementation to remove table plane and generate clustered objects -->
   <node name ="super" pkg="sq_fitting" type="sq_fitter_node" output="screen">
       <!--param name="cloud_topic" value="/kinect2/sd/points" /-->
       <!--param name="cloud_topic" value="/head_mount_kinect/depth_registered/points" /-->
       <param name="cloud_topic" value="/camera/depth_registered/points" />
       <param name="output_frame" value = "/world" />
-
-
-      <param name="zmax" value="2.0" />
-      <param name="zmin" value="0.005" />
-      <param name= "th_points" value="60" />
-
-      <!--Supervoxel parameters -->
-      <param name="voxel_resoluton" value="0.0075f" />
-      <param name="seed_resolution" value="0.015f" />
-      <param name= "color_importance" value="0.0f" />
-      <param name="spatial_importance" value="1.0f" />
-      <param name="normal_importance" value="4.0f" />
-
-      <!-- LCCP parameters -->
-      <param name="use_extended_convexity" value="false" />
-      <param name="use_sanity_criterion" value="true" />
-      <param name="concavity_tolerance_threshold" value="10" />
-      <param name="smoothness_threshold" value="0.1f" />
-      <param name="min_segment_size" value="3" />
-
-
       <!--rosparam param = "workspace"> [-0.3, 0.19,  -1, 0.25, 0.5, 2 ]</rosparam-->
-
-
-       <!-- for in world frame -->
+      <!-- for in world frame -->
       <rosparam param = "workspace"> [0, 0.8,  -0.4, 0.4, 0, 10 ]</rosparam>
-
       <!-- for PR2 kinect -->
       <!--rosparam param = "workspace"> [0.5, 1.2,  -0.3, 0.4, 0.2, 2 ]</rosparam-->
-
-
       <param name="remove_nan" value="true" />
       <param name="pose_est_method" value="pca"/>
-
   </node>
-
-
-
 </launch>
