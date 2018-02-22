@@ -37,19 +37,19 @@ int main(int argc, char **argv)
   nh_.getParam("workspace", params.ws_limits);
   nh_.getParam("pose_est_method", params.pose_est_method);
   nh_.param("remove_nan", params.remove_nan, REMOVE_NAN);
-  nh_.param("zmin", params.seg_params.zmin, ZMIN);
-  nh_.param("zmax", params.seg_params.zmax, ZMAX);
-  nh_.param("th_points", params.seg_params.th_points, TH_POINTS);
-  nh_.param("voxel_resoluton", params.seg_params.voxel_resolution, VOXEL_RESOLUTION);
-  nh_.param("seed_resolution", params.seg_params.seed_resolution, SEED_RESOLUTION);
-  nh_.param("color_importance", params.seg_params.color_importance, COLOR_IMPORTANCE);
-  nh_.param("spatial_importance", params.seg_params.spatial_importance, SPATIAL_IMPORTANCE);
-  nh_.param("normal_importance", params.seg_params.normal_importance, NORMAL_IMPORTANCE);
-  nh_.param("use_extended_convexity", params.seg_params.use_extended_convexity, USE_EXTENDED_CONVEXITY);
-  nh_.param("use_sanity_criterion", params.seg_params.use_sanity_criterion, USE_SANITY_CRITERION);
-  nh_.param("concavity_tolerance_threshold", params.seg_params.concavity_tolerance_threshold, CONCAVITY_TOLERANCE_THRESHOLD);
-  nh_.param("smoothness_threshold", params.seg_params.smoothness_threshold, SMOOTHNESS_THRESHOLD);
-  nh_.param("min_segment_size", params.seg_params.min_segment_size, MIN_SEGMENT_SIZE);
+  //nh_.param("zmin", params.seg_params.zmin, ZMIN);
+  //nh_.param("zmax", params.seg_params.zmax, ZMAX);
+  //nh_.param("th_points", params.seg_params.th_points, TH_POINTS);
+  //nh_.param("voxel_resoluton", params.seg_params.voxel_resolution, VOXEL_RESOLUTION);
+  //nh_.param("seed_resolution", params.seg_params.seed_resolution, SEED_RESOLUTION);
+  //nh_.param("color_importance", params.seg_params.color_importance, COLOR_IMPORTANCE);
+  //nh_.param("spatial_importance", params.seg_params.spatial_importance, SPATIAL_IMPORTANCE);
+  //nh_.param("normal_importance", params.seg_params.normal_importance, NORMAL_IMPORTANCE);
+  //nh_.param("use_extended_convexity", params.seg_params.use_extended_convexity, USE_EXTENDED_CONVEXITY);
+  //nh_.param("use_sanity_criterion", params.seg_params.use_sanity_criterion, USE_SANITY_CRITERION);
+  //nh_.param("concavity_tolerance_threshold", params.seg_params.concavity_tolerance_threshold, CONCAVITY_TOLERANCE_THRESHOLD);
+  //nh_.param("smoothness_threshold", params.seg_params.smoothness_threshold, SMOOTHNESS_THRESHOLD);
+  //nh_.param("min_segment_size", params.seg_params.min_segment_size, MIN_SEGMENT_SIZE);
 
 
 

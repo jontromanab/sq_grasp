@@ -1,4 +1,9 @@
 #include<sq_fitting/segmentation.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_types.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
+#include <pcl_ros/transforms.h>
 
 LccpSegmentationAlgorithm::LccpSegmentationAlgorithm(ros::NodeHandle *handle, const SegmentationParameters &param, std::string name):
   nh_(*handle), service_name_(name){
@@ -33,13 +38,14 @@ void LccpSegmentationAlgorithm::obj_seg_mutex_exit_(void){
   pthread_mutex_unlock(&this->obj_seg_mutex_);
 }
 
-
-
 bool LccpSegmentationAlgorithm::segmentationCallback(sq_fitting::segment_object::Request &req,
                                                      sq_fitting::segment_object::Response &res){
   this->obj_seg_mutex_enter_();
+  pcl::PCLPointCloud2 pcl_pc2;
+  pcl_conversions::toPCL(req.input_cloud, pcl_pc2);
   CloudPtr cloud(new PointCloud);
-  pcl::fromROSmsg(req.input_cloud, *cloud);
+  pcl::fromPCLPointCloud2(pcl_pc2, *cloud);
+  //pcl::fromROSmsg(req.input_cloud, *cloud);
   std::unique_ptr<lccp_segmentation> seg(new lccp_segmentation);
   seg->init(*cloud, this->param_);
   std::vector<Object> seg_objs;

@@ -16,7 +16,7 @@ class SQFitter
 public:
   struct Parameters
   {
-    Segmentation::Parameters seg_params;
+    //Segmentation::Parameters seg_params;
     std::vector<double> ws_limits;
     bool remove_nan;
     std::string pose_est_method;
@@ -92,7 +92,7 @@ private:
 
 
   SQFitter::Parameters sq_param_;
-  Segmentation::Parameters seg_param_;
+  //Segmentation::Parameters seg_param_;
   sq_fitting::sqArray sqArr_;
   bool initialized;
   std::string output_frame_;

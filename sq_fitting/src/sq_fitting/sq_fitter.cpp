@@ -39,7 +39,7 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const 
   service_ = node.advertiseService("sqs", &SQFitter::serviceCallback, this);
 
   this->sq_param_ = params;
-  this->seg_param_ = params.seg_params;
+  //this->seg_param_ = params.seg_params;
   this->initialized = true;
   Objects_.resize(0);
 }
@@ -401,7 +401,8 @@ void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs:
 
 void SQFitter::getSegmentedObjects(CloudPtr& cloud)
 {
-  Segmentation* seg = new Segmentation(cloud, this->seg_param_);
+
+  /*Segmentation* seg = new Segmentation(cloud, this->seg_param_);
   seg->segment();
 
   seg->getTablecloud(table_plane_cloud_);
@@ -429,7 +430,7 @@ void SQFitter::getSegmentedObjects(CloudPtr& cloud)
   cut_cloud_ros_.header.stamp = ros::Time::now();
 
 
-  seg->getObjects(Objects_);
+  seg->getObjects(Objects_);*/
 }
 
 void SQFitter::getSuperquadricParameters(std::vector<sq_fitting::sq>& params)
