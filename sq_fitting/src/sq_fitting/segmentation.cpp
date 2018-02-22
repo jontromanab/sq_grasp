@@ -5,7 +5,7 @@
 #include <pcl/conversions.h>
 #include <pcl_ros/transforms.h>
 
-LccpSegmentationAlgorithm::LccpSegmentationAlgorithm(ros::NodeHandle *handle, const SegmentationParameters &param, std::string name):
+LccpSegmentationAlgorithm::LccpSegmentationAlgorithm(ros::NodeHandle *handle, const Parameters &param, std::string name):
   nh_(*handle), service_name_(name){
   ROS_INFO("Segmentation server started");
   this->param_.zmin = param.zmin;

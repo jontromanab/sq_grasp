@@ -331,7 +331,7 @@ public:
   /**
    * @brief Constructor
    */
-  LccpSegmentationAlgorithm(ros::NodeHandle* handle, const SegmentationParameters& param, std::string name);
+  LccpSegmentationAlgorithm(ros::NodeHandle* handle, const Parameters& param, std::string name);
 
   /**
    * @brief Destructor
