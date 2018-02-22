@@ -28,7 +28,7 @@ public:
 
 private:
   void cloud_callback(const sensor_msgs::PointCloud2& input);
-  void filterCloud(const CloudPtr& cloud, CloudPtr& filtered_cloud);
+  void filterWorkSpace(const CloudPtr& cloud, CloudPtr& filtered_cloud);
   //void filterCloud2(const CloudPtr& cloud, CloudPtr& filtered_cloud);
   void getSegmentedObjects(CloudPtr& cloud);
   void getSuperquadricParameters(std::vector<sq_fitting::sq>& params);

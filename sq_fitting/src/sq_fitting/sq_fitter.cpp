@@ -55,7 +55,7 @@ void SQFitter::cloud_callback(const sensor_msgs::PointCloud2& input)
   pcl::fromROSMsg(input, *cloud_);
   this->input_msg_ = input;
 
-  filterCloud(this->cloud_, this->filtered_cloud_);
+  filterWorkSpace(this->cloud_, this->filtered_cloud_);
   pcl::toROSMsg(*filtered_cloud_, filtered_cloud_ros_);
 
   getSegmentedObjects(this->filtered_cloud_);
@@ -134,7 +134,7 @@ void SQFitter::transformFrameCloudBack(const CloudPtr& cloud_in, CloudPtr& cloud
   }
 }
 
-void SQFitter::filterCloud(const CloudPtr& cloud, CloudPtr& filtered_cloud)
+void SQFitter::filterWorkSpace(const CloudPtr& cloud, CloudPtr& filtered_cloud)
 {
   CloudPtr transform_cloud(new PointCloud);
   transformFrameCloud(cloud, transform_cloud);
@@ -147,9 +147,13 @@ void SQFitter::filterCloud(const CloudPtr& cloud, CloudPtr& filtered_cloud)
   max<<sq_param_.ws_limits[1],sq_param_.ws_limits[3], sq_param_.ws_limits[5], 1;
   crop.setMin(min);
   crop.setMax(max);
-  crop.filter(*cloud_nan);
-  std::vector<int> indices;
-  pcl::removeNaNFromPointCloud(*cloud_nan, *filtered_cloud, indices);
+  if(this->sq_param_.remove_nan){
+    crop.filter(*cloud_nan);
+    std::vector<int> indices;
+    pcl::removeNaNFromPointCloud(*cloud_nan, *filtered_cloud, indices);
+  }
+  else
+    crop.filter(*filtered_cloud);
 }
 
 void SQFitter::createCenterMarker(const double x, const double y, const double z)
@@ -239,7 +243,6 @@ void SQFitter::mirror_cloud(CloudPtr &cloud_in, CloudPtr &cloud_out)
   geometry_msgs::Pose pose_out;
   transformFrame(pose_in, pose_out);
   createCenterMarker(pose_out.position.x, pose_out.position.y, pose_out.position.z );
-
 }
 
 void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs::Pose& pose_out)
