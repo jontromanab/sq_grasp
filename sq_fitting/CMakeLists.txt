@@ -107,6 +107,10 @@ add_executable(segmentation_server_node src/nodes/segmentation_server_node.cpp)
 add_dependencies(segmentation_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(segmentation_server_node segmentation ${catkin_LIBRARIES})
 
+add_executable(segmentation_client_node src/nodes/segmentation_client_node.cpp)
+add_dependencies(segmentation_client_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(segmentation_client_node segmentation ${catkin_LIBRARIES})
+
 add_executable(sq_fitter_node src/nodes/sq_fitter_node.cpp)
 add_dependencies(sq_fitter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sq_fitter_node sq_fitter   ${catkin_LIBRARIES})
