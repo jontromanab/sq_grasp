@@ -41,11 +41,8 @@ void LccpSegmentationAlgorithm::obj_seg_mutex_exit_(void){
 bool LccpSegmentationAlgorithm::segmentationCallback(sq_fitting::segment_object::Request &req,
                                                      sq_fitting::segment_object::Response &res){
   this->obj_seg_mutex_enter_();
-  pcl::PCLPointCloud2 pcl_pc2;
-  pcl_conversions::toPCL(req.input_cloud, pcl_pc2);
   CloudPtr cloud(new PointCloud);
-  pcl::fromPCLPointCloud2(pcl_pc2, *cloud);
-  //pcl::fromROSmsg(req.input_cloud, *cloud);
+  pcl::fromROSMsg(req.input_cloud, *cloud);
   std::unique_ptr<lccp_segmentation> seg(new lccp_segmentation);
   seg->init(*cloud, this->param_);
   std::vector<Object> seg_objs;
@@ -54,12 +51,6 @@ bool LccpSegmentationAlgorithm::segmentationCallback(sq_fitting::segment_object:
 
   //Table cloud
   CloudPtr table_cloud = seg->get_plane_cloud();
-  for(uint i = 0; i < table_cloud->points.size(); ++i){
-    table_cloud->at(i).r = 0;
-    table_cloud->at(i).g = 255;
-    table_cloud->at(i).b = 0;
-    table_cloud->at(i).a = 255;
-  }
   pcl::toROSMsg(*table_cloud, res.plane_cloud);
 
   //Object clouds

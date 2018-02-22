@@ -1,15 +1,15 @@
 #ifndef SQ_FITTER_H
 #define SQ_FITTER_H
-#include<ros/ros.h>
-#include<sq_fitting/segmentation.h>
-#include<sq_fitting/fitting.h>
-#include<sq_fitting/sampling.h>
-#include<sq_fitting/sq.h>
-#include<sq_fitting/sqArray.h>
-#include<sq_fitting/get_sq.h>
+#include <ros/ros.h>
+#include <sq_fitting/segmentation.h>
+#include <sq_fitting/fitting.h>
+#include <sq_fitting/sampling.h>
+#include <sq_fitting/sq.h>
+#include <sq_fitting/sqArray.h>
+#include <sq_fitting/get_sq.h>
 #include <pcl/filters/filter.h>
 #include <geometry_msgs/PoseArray.h>
-#include<visualization_msgs/Marker.h>
+#include <visualization_msgs/Marker.h>
 
 class SQFitter
 {
@@ -52,7 +52,7 @@ private:
 
   sensor_msgs::PointCloud2 table_cloud_;
   sensor_msgs::PointCloud2 objects_on_table_cloud_;
-  sensor_msgs::PointCloud2 objects_cloud_;
+  sensor_msgs::PointCloud2 objects_cloud_ros_;
   sensor_msgs::PointCloud2 sq_cloud_;
   sensor_msgs::PointCloud2 filtered_cloud_ros_;
   sensor_msgs::PointCloud2 input_msg_;
