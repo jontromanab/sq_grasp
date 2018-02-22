@@ -15,9 +15,13 @@
 
 
 
-SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const std::string &output_frame, const SQFitter::Parameters &params)
-  : nh_(node), table_plane_cloud_(new PointCloud), segmented_objects_cloud_(new PointCloud), objects_on_table_(new PointCloud),
-  cloud_(new PointCloud), transformed_cloud_(new PointCloud), filtered_cloud_(new PointCloud), cut_cloud_(new PointCloud), output_frame_(output_frame)
+SQFitter::SQFitter(ros::NodeHandle &node, const std::string &segmentation_service,
+                   const std::string &cloud_topic, const std::string &output_frame,
+                   const SQFitter::Parameters &params)
+  : nh_(node), table_plane_cloud_(new PointCloud), segmented_objects_cloud_(new PointCloud),
+    objects_on_table_(new PointCloud),cloud_(new PointCloud),
+    transformed_cloud_(new PointCloud), filtered_cloud_(new PointCloud),
+    cut_cloud_(new PointCloud), output_frame_(output_frame)
 {
 
   cloud_sub_ = nh_.subscribe(cloud_topic, 1, &SQFitter::cloud_callback, this);
@@ -31,6 +35,7 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const 
   center_pub_ = nh_.advertise<visualization_msgs::Marker>("visualization_marker",10);
   transformed_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("trnsformed_cloud",10);
 
+  std::cout<<"Name of segmentation service: "<<segmentation_service<<std::endl;
   client_= nh_.serviceClient<sq_fitting::segment_object>("/segmentation_service");
   service_ = nh_.advertiseService("sqs", &SQFitter::serviceCallback, this);
 

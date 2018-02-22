@@ -21,7 +21,8 @@ public:
     std::string pose_est_method;
   };
 
-  SQFitter(ros::NodeHandle &node, const std::string &cloud_topic, const std::string &output_frame, const SQFitter::Parameters &params);
+  SQFitter(ros::NodeHandle &node, const std::string &segmentation_service,
+           const std::string &cloud_topic, const std::string &output_frame, const SQFitter::Parameters &params);
   void fit();
 
 
