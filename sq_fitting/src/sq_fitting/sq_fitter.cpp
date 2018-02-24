@@ -62,7 +62,7 @@ void SQFitter::cloud_callback(const sensor_msgs::PointCloud2& input)
 
   //pcl::toROSMsg(*cut_cloud_, cut_cloud_ros_);
 
-  //getSuperquadricParameters(this->params_);
+  getSuperquadricParameters(this->params_);
   //sampleSuperquadrics(this->params_);
 }
 
@@ -291,6 +291,7 @@ void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs:
 
 void SQFitter::getSegmentedObjects(CloudPtr& cloud)
 {
+  std::vector<CloudPtr> segmented_clouds;
   CloudPtr transform_cloud(new PointCloud);
   transformFrameCloudBack(cloud, transform_cloud);
   sensor_msgs::PointCloud2 cloud_msg;
@@ -303,6 +304,7 @@ void SQFitter::getSegmentedObjects(CloudPtr& cloud)
     for(int i=0;i<srv.response.object_cloud.size();++i){
       pcl::PointCloud<pcl::PointXYZRGB> tmp;
       pcl::fromROSMsg(srv.response.object_cloud[i], tmp);
+      segmented_clouds.push_back(tmp.makeShared());
       float r = static_cast<float> (rand())/static_cast<float>(RAND_MAX);
       float g = static_cast<float> (rand())/static_cast<float>(RAND_MAX);
       float b = static_cast<float> (rand())/static_cast<float>(RAND_MAX);
@@ -327,6 +329,15 @@ void SQFitter::getSegmentedObjects(CloudPtr& cloud)
     objects_cloud_ros_.header.frame_id = this->output_frame_;
     objects_cloud_ros_.header.stamp = ros::Time::now();
   }
+
+  //transforming every segmented point cloud to output frame
+  for(int i=0;i<segmented_clouds.size();++i){
+    CloudPtr temp_cloud(new PointCloud);
+    transformFrameCloud(segmented_clouds[i], temp_cloud);
+    Objects_.push_back(temp_cloud);
+  }
+
+
 }
 
 void SQFitter::getSuperquadricParameters(std::vector<sq_fitting::sq>& params)
