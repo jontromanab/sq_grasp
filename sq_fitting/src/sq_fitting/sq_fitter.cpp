@@ -340,6 +340,9 @@ void SQFitter::getSegmentedObjects(CloudPtr& cloud)
 
 }
 
+
+//Implemented threading here. which took 12s for 9 objects instead of 56s. Somehow the code was not uploaded. :(
+// Let's do that again. But this time using boost
 void SQFitter::getSuperquadricParameters(std::vector<sq_fitting::sq>& params)
 {
   params.resize(0);
