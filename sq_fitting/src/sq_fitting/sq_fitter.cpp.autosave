@@ -352,8 +352,6 @@ void SQFitter::getSegmentedObjects(CloudPtr& cloud)
 }
 
 
-//Implemented threading here. which took 12s for 9 objects instead of 56s. Somehow the code was not uploaded. :(
-// Let's do that again. But this time using boost
 std::mutex mu;
 static void getSQParamTh(CloudPtr& cloud, const std::string& method, std::vector<sq_fitting::sq>& params){
   sq_fitting::sq min_param;
@@ -398,56 +396,6 @@ static void sampleSQTh(const sq_fitting::sq& param, CloudPtr& cloud){
 
 void SQFitter::sampleSuperquadrics(const std::vector<sq_fitting::sq>& params)
 {
-  /*CloudPtr sq_cloud_pcl_(new PointCloud);
-  poseArr_.poses.resize(0);
-  sqArr_.sqs.resize(0);
-  sq_cloud_pcl_->points.resize(0);
-  for(int i=0;i<params.size();++i)
-  {
-
-    poseArr_.poses.push_back(params[i].pose);
-    sq_fitting::sq super;
-    super.a1 = params[i].a1;
-    super.a2 = params[i].a2;
-    super.a3 = params[i].a3;
-    super.e1 = params[i].e1;
-    super.e2 = params[i].e2;
-    super.pose = params[i].pose;
-    sqArr_.sqs.push_back(super);
-    sqArr_.header.frame_id = output_frame_;
-    sqArr_.header.stamp = ros::Time::now();
-
-    Sampling* sam = new Sampling(super);
-
-    sam->sample_pilu_fisher();
-    CloudPtr sq_cloud(new PointCloud);
-    sam->getCloud(sq_cloud);
-    for(size_t j=0;j<sq_cloud->points.size();++j)
-    {
-      PointT tmp;
-      tmp.x = sq_cloud->points.at(j).x;
-      tmp.y = sq_cloud->points.at(j).y;
-      tmp.z = sq_cloud->points.at(j).z;
-      tmp.r = sq_cloud->points.at(j).r;
-      tmp.g = sq_cloud->points.at(j).g;
-      tmp.b = sq_cloud->points.at(j).b;
-      sq_cloud_pcl_->points.push_back(tmp);
-    }
-    delete sam;
-  }
-  sq_cloud_pcl_->height = 1;
-  sq_cloud_pcl_->width = sq_cloud_pcl_->points.size();
-  sq_cloud_pcl_->is_dense = true;
-
-  pcl::toROSMsg(*sq_cloud_pcl_, sq_cloud_);
-  sq_cloud_.header.seq = 1;
-  sq_cloud_.header.frame_id = output_frame_;
-  sq_cloud_.header.stamp = ros::Time::now();
-
-
-
-  poseArr_.header.frame_id =  output_frame_;
-  poseArr_.header.stamp = ros::Time::now();*/
   poseArr_.poses.resize(0);
   sqArr_.sqs.resize(0);
   std::vector<std::thread> threads;
@@ -488,9 +436,9 @@ void SQFitter::publishClouds()
   objects_pub_.publish(objects_cloud_ros_);
   filtered_cloud_pub_.publish(filtered_cloud_ros_);
   superquadrics_pub_.publish(sq_cloud_);
-
-
   poses_pub_.publish(poseArr_);
+  
+  
   cut_cloud_pub_.publish(cut_cloud_ros_);
   center_pub_.publish(centerPoint_);
  }
