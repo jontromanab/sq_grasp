@@ -1,0 +1,14 @@
+<map id="segmentation.h" name="segmentation.h">
+<area shape="rect" id="node2" href="$sq__fitter_8h.html" title="sq_fitter.h" alt="" coords="98,87,178,114"/>
+<area shape="rect" id="node5" href="$segmentation__client__node_8cpp.html" title="segmentation_client\l_node.cpp" alt="" coords="202,80,341,121"/>
+<area shape="rect" id="node6" href="$segmentation__server__node_8cpp.html" title="segmentation_server\l_node.cpp" alt="" coords="365,80,508,121"/>
+<area shape="rect" id="node7" href="$fitting__service_8cpp.html" title="fitting_service.cpp" alt="" coords="533,87,661,114"/>
+<area shape="rect" id="node8" href="$segmentation_8cpp.html" title="segmentation.cpp" alt="" coords="685,87,810,114"/>
+<area shape="rect" id="node9" href="$seg__and__fit__test__pcd_8cpp.html" title="seg_and_fit_test_pcd.cpp" alt="" coords="834,87,1005,114"/>
+<area shape="rect" id="node10" href="$seg__and__fit__test__ros_8cpp.html" title="seg_and_fit_test_ros.cpp" alt="" coords="1029,87,1197,114"/>
+<area shape="rect" id="node11" href="$segmentation__test__pcd_8cpp.html" title="segmentation_test_pcd.cpp" alt="" coords="1221,87,1404,114"/>
+<area shape="rect" id="node12" href="$segmentation__test__ros_8cpp.html" title="segmentation_test_ros.cpp" alt="" coords="1429,87,1607,114"/>
+<area shape="rect" id="node13" href="$show__convex__hull_8cpp.html" title="show_convex_hull.cpp" alt="" coords="1631,87,1786,114"/>
+<area shape="rect" id="node3" href="$sq__fitter__node_8cpp.html" title="sq_fitter_node.cpp" alt="" coords="5,169,135,196"/>
+<area shape="rect" id="node4" href="$sq__fitter_8cpp.html" title="sq_fitter.cpp" alt="" coords="159,169,253,196"/>
+</map>

@@ -1,0 +1,27 @@
+actions: []
+authors: ''
+brief: ''
+bugtracker: ''
+depends:
+- pcl_conversions
+- roscpp
+- sensor_msgs
+- message_runtime
+- std_msgs
+- message_generation
+- catkin
+- libpcl-all
+- pcl_ros
+description: The sq_fitting package
+license: Apache 2.0
+maintainers: Abhijit makhal <makhabhi@isu.edu>
+msgs:
+- sq
+- sqArray
+package_type: package
+repo_url: ''
+srvs:
+- get_sq_param
+- get_sq
+- segment_object
+url: ''
