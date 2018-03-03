@@ -14,6 +14,7 @@
 #include <thread>
 #include <mutex>
 
+
 SQFitter::SQFitter(ros::NodeHandle &node, const std::string &segmentation_service,
                    const std::string &cloud_topic, const std::string &output_frame,
                    const SQFitter::Parameters &params)
@@ -39,7 +40,7 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &segmentation_servic
   this->sq_param_ = params;
   this->initialized = true;
   Objects_.resize(0);
-  //pMap_.resize(0);
+  pVector_.resize(0);
 }
 
 bool SQFitter::serviceCallback(sq_fitting::get_sq::Request &req, sq_fitting::get_sq::Response &res)
@@ -75,7 +76,7 @@ void SQFitter::cloud_callback(const sensor_msgs::PointCloud2& input)
   auto finish_sample = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_sample = finish_sample - finish_fit;
   std::cout<<"Elapsed sampling time: "<<elapsed_sample.count()<<std::endl;*/
-  fitAndSample();
+  fitAndSample(pVector_);
   auto finish_fit = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_fit = finish_fit - start;
   std::cout<<"Elapsed toral time: "<<elapsed_fit.count()<<std::endl;
@@ -471,6 +472,51 @@ void SQFitter::fitAndSample(){
   sq_cloud_.header.seq = 1;
   sq_cloud_.header.frame_id = output_frame_;
   sq_cloud_.header.stamp = ros::Time::now();
+}
+
+std::mutex map_mu;
+static void fitAndSampleThMap(CloudPtr &cloud_in,std::string& method, ParamMultiVector& pmap){
+  std::unique_ptr<SuperquadricFitting> fit(new SuperquadricFitting(cloud_in));
+  if(!fit->set_pose_est_method(method))
+    ROS_ERROR("Method not recognized");
+  fit->fit();
+  sq_fitting::sq min_param;
+  fit->getMinParams(min_param);
+
+  std::unique_ptr<Sampling> samp(new Sampling(min_param));
+  CloudPtr sq_cloud(new PointCloud);
+  samp->sample_pilu_fisher();
+  samp->getCloud(sq_cloud);
+  std::lock_guard<std::mutex> blck(map_mu);
+  //pmap.insert(std::pair<sq_fitting::sq, CloudPtr> (min_param, sq_cloud) );
+  pmap.push_back(std::make_pair(min_param, sq_cloud));
+}
+
+void SQFitter::fitAndSample(ParamMultiVector& pmap){
+  pmap.clear();
+  pmap.reserve(Objects_.size());
+  std::vector<std::thread> threads;
+  for(int i=0;i<Objects_.size();++i)
+  {
+    threads.push_back(std::thread(fitAndSampleThMap, std::ref(Objects_[i]), std::ref(sq_param_.pose_est_method),
+                       std::ref(pmap)));
+  }
+  for(auto &t:threads)
+    t.join();
+
+  CloudPtr sq_cloud_pcl(new PointCloud);
+  for(ParamMultiVector::iterator it = pmap.begin(); it !=pmap.end();++it){
+    *sq_cloud_pcl+=*(it->second);
+  }
+  std::cout<<"Size of the cloud: "<<sq_cloud_pcl->points.size()<<std::endl;
+  sq_cloud_pcl->height = 1;
+  sq_cloud_pcl->width = sq_cloud_pcl->points.size();
+  sq_cloud_pcl->is_dense = true;
+  pcl::toROSMsg(*sq_cloud_pcl, sq_cloud_);
+  sq_cloud_.header.seq = 1;
+  sq_cloud_.header.frame_id = output_frame_;
+  sq_cloud_.header.stamp = ros::Time::now();
+
 }
 
 void SQFitter::publishClouds()

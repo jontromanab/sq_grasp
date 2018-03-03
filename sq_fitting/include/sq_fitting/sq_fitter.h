@@ -10,8 +10,9 @@
 #include <pcl/filters/filter.h>
 #include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/Marker.h>
+#include <map>
 
-typedef std::map<sq_fitting::sq, CloudPtr> ParamMap;
+typedef std::vector<std::pair<sq_fitting::sq, CloudPtr> > ParamMultiVector;
 
 class SQFitter
 {
@@ -47,6 +48,7 @@ private:
   void createCenterMarker(const double x, const double y, const double z);
 
   void fitAndSample();
+  void fitAndSample(ParamMultiVector& pmap);
 
 
   ros::ServiceClient client_;
@@ -102,7 +104,7 @@ private:
   geometry_msgs::Vector3 table_center_;
 
   ros::NodeHandle nh_;
-  ParamMap pMap_;
+  ParamMultiVector pVector_;
 
 };
 
