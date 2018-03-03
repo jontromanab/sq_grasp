@@ -291,6 +291,7 @@ void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs:
 
 void SQFitter::getSegmentedObjects(CloudPtr& cloud)
 {
+  Objects_.resize(0);
   std::vector<CloudPtr> segmented_clouds;
   CloudPtr transform_cloud(new PointCloud);
   transformFrameCloudBack(cloud, transform_cloud);
