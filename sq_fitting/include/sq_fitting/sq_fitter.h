@@ -11,6 +11,8 @@
 #include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/Marker.h>
 
+typedef std::map<sq_fitting::sq, CloudPtr> ParamMap;
+
 class SQFitter
 {
 public:
@@ -43,6 +45,8 @@ private:
 
   void mirror_cloud(CloudPtr& cloud_in, CloudPtr& cloud_out);
   void createCenterMarker(const double x, const double y, const double z);
+
+  void fitAndSample();
 
 
   ros::ServiceClient client_;
@@ -98,6 +102,7 @@ private:
   geometry_msgs::Vector3 table_center_;
 
   ros::NodeHandle nh_;
+  ParamMap pMap_;
 
 };
 

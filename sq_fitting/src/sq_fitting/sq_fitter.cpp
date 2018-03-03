@@ -39,6 +39,7 @@ SQFitter::SQFitter(ros::NodeHandle &node, const std::string &segmentation_servic
   this->sq_param_ = params;
   this->initialized = true;
   Objects_.resize(0);
+  //pMap_.resize(0);
 }
 
 bool SQFitter::serviceCallback(sq_fitting::get_sq::Request &req, sq_fitting::get_sq::Response &res)
@@ -66,14 +67,20 @@ void SQFitter::cloud_callback(const sensor_msgs::PointCloud2& input)
   //pcl::toROSMsg(*cut_cloud_, cut_cloud_ros_);
   auto start = std::chrono::high_resolution_clock::now();
 
-  getSuperquadricParameters(this->params_);
+  /*getSuperquadricParameters(this->params_);
   auto finish_fit = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_fit = finish_fit - start;
   std::cout<<"Elapsed fitting time: "<<elapsed_fit.count()<<std::endl;
   sampleSuperquadrics(this->params_);
   auto finish_sample = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_sample = finish_sample - finish_fit;
-  std::cout<<"Elapsed sampling time: "<<elapsed_sample.count()<<std::endl;
+  std::cout<<"Elapsed sampling time: "<<elapsed_sample.count()<<std::endl;*/
+  fitAndSample();
+  auto finish_fit = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed_fit = finish_fit - start;
+  std::cout<<"Elapsed toral time: "<<elapsed_fit.count()<<std::endl;
+
+
 }
 
 void SQFitter::transformFrameCloud(const CloudPtr& cloud_in, CloudPtr& cloud_out)
@@ -352,8 +359,6 @@ void SQFitter::getSegmentedObjects(CloudPtr& cloud)
 }
 
 
-//Implemented threading here. which took 12s for 9 objects instead of 56s. Somehow the code was not uploaded. :(
-// Let's do that again. But this time using boost
 std::mutex mu;
 static void getSQParamTh(CloudPtr& cloud, const std::string& method, std::vector<sq_fitting::sq>& params){
   sq_fitting::sq min_param;
@@ -370,7 +375,6 @@ static void getSQParamTh(CloudPtr& cloud, const std::string& method, std::vector
   std::lock_guard<std::mutex> blck(mu);
   params.push_back(min_param);
 }
-
 
 void SQFitter::getSuperquadricParameters(std::vector<sq_fitting::sq>& params)
 {
@@ -395,59 +399,8 @@ static void sampleSQTh(const sq_fitting::sq& param, CloudPtr& cloud){
   *cloud+=*sq_cloud;
 }
 
-
 void SQFitter::sampleSuperquadrics(const std::vector<sq_fitting::sq>& params)
 {
-  /*CloudPtr sq_cloud_pcl_(new PointCloud);
-  poseArr_.poses.resize(0);
-  sqArr_.sqs.resize(0);
-  sq_cloud_pcl_->points.resize(0);
-  for(int i=0;i<params.size();++i)
-  {
-
-    poseArr_.poses.push_back(params[i].pose);
-    sq_fitting::sq super;
-    super.a1 = params[i].a1;
-    super.a2 = params[i].a2;
-    super.a3 = params[i].a3;
-    super.e1 = params[i].e1;
-    super.e2 = params[i].e2;
-    super.pose = params[i].pose;
-    sqArr_.sqs.push_back(super);
-    sqArr_.header.frame_id = output_frame_;
-    sqArr_.header.stamp = ros::Time::now();
-
-    Sampling* sam = new Sampling(super);
-
-    sam->sample_pilu_fisher();
-    CloudPtr sq_cloud(new PointCloud);
-    sam->getCloud(sq_cloud);
-    for(size_t j=0;j<sq_cloud->points.size();++j)
-    {
-      PointT tmp;
-      tmp.x = sq_cloud->points.at(j).x;
-      tmp.y = sq_cloud->points.at(j).y;
-      tmp.z = sq_cloud->points.at(j).z;
-      tmp.r = sq_cloud->points.at(j).r;
-      tmp.g = sq_cloud->points.at(j).g;
-      tmp.b = sq_cloud->points.at(j).b;
-      sq_cloud_pcl_->points.push_back(tmp);
-    }
-    delete sam;
-  }
-  sq_cloud_pcl_->height = 1;
-  sq_cloud_pcl_->width = sq_cloud_pcl_->points.size();
-  sq_cloud_pcl_->is_dense = true;
-
-  pcl::toROSMsg(*sq_cloud_pcl_, sq_cloud_);
-  sq_cloud_.header.seq = 1;
-  sq_cloud_.header.frame_id = output_frame_;
-  sq_cloud_.header.stamp = ros::Time::now();
-
-
-
-  poseArr_.header.frame_id =  output_frame_;
-  poseArr_.header.stamp = ros::Time::now();*/
   poseArr_.poses.resize(0);
   sqArr_.sqs.resize(0);
   std::vector<std::thread> threads;
@@ -482,15 +435,53 @@ void SQFitter::sampleSuperquadrics(const std::vector<sq_fitting::sq>& params)
   poseArr_.header.stamp = ros::Time::now();
 }
 
+
+std::mutex big_mu;
+static void fitAndSampleTh(CloudPtr &cloud_in,std::string& method, CloudPtr &cloud_out){
+  std::unique_ptr<SuperquadricFitting> fit(new SuperquadricFitting(cloud_in));
+  if(!fit->set_pose_est_method(method))
+    ROS_ERROR("Method not recognized");
+  fit->fit();
+  sq_fitting::sq min_param;
+  fit->getMinParams(min_param);
+
+  std::unique_ptr<Sampling> samp(new Sampling(min_param));
+  CloudPtr sq_cloud(new PointCloud);
+  samp->sample_pilu_fisher();
+  samp->getCloud(sq_cloud);
+  std::lock_guard<std::mutex> blck(big_mu);
+  *cloud_out+=*sq_cloud;
+}
+
+void SQFitter::fitAndSample(){
+  std::vector<std::thread> threads;
+  CloudPtr sq_cloud_pcl(new PointCloud);
+  for(int i=0;i<Objects_.size();++i)
+  {
+    threads.push_back(std::thread(fitAndSampleTh, std::ref(Objects_[i]), std::ref(sq_param_.pose_est_method),
+                       std::ref(sq_cloud_pcl)));
+  }
+  for(auto &t:threads)
+    t.join();
+  std::cout<<"Size of the cloud: "<<sq_cloud_pcl->points.size()<<std::endl;
+  sq_cloud_pcl->height = 1;
+  sq_cloud_pcl->width = sq_cloud_pcl->points.size();
+  sq_cloud_pcl->is_dense = true;
+  pcl::toROSMsg(*sq_cloud_pcl, sq_cloud_);
+  sq_cloud_.header.seq = 1;
+  sq_cloud_.header.frame_id = output_frame_;
+  sq_cloud_.header.stamp = ros::Time::now();
+}
+
 void SQFitter::publishClouds()
 {
   table_pub_.publish(table_cloud_);
   objects_pub_.publish(objects_cloud_ros_);
   filtered_cloud_pub_.publish(filtered_cloud_ros_);
   superquadrics_pub_.publish(sq_cloud_);
-
-
   poses_pub_.publish(poseArr_);
+
+
   cut_cloud_pub_.publish(cut_cloud_ros_);
   center_pub_.publish(centerPoint_);
  }
