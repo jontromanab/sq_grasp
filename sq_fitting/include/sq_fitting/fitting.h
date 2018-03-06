@@ -99,7 +99,13 @@ private:
   double min_error_;
   std::string pose_est_method_;
   bool set_method_;
+
+  ///typename _scalar
   template<typename _Scalar, int nX = Eigen::Dynamic, int nY = Eigen::Dynamic>
+
+  /**
+   * @brief The Functor struct
+   */
   struct Functor
   {
     typedef _Scalar Scalar;
@@ -121,6 +127,9 @@ private:
     int m_data_points_;
   };
 
+  /**
+   * @brief The OptimizationFunctor struct
+   */
   struct OptimizationFunctor : public Functor<double>
   {
     using Functor<double>::values;
