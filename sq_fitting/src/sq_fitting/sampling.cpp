@@ -1,7 +1,7 @@
 #include <sq_fitting/sampling.h>
 #include <ctime>
 
-Sampling::Sampling(const sq_fitting::sq &sq_params) : params_(sq_params), cloud_(new pcl::PointCloud<PointT>)
+SuperquadricSampling::SuperquadricSampling(const sq_fitting::sq &sq_params) : params_(sq_params), cloud_(new pcl::PointCloud<PointT>)
 {
   struct timeval time;
   gettimeofday(&time,NULL);
@@ -11,7 +11,7 @@ Sampling::Sampling(const sq_fitting::sq &sq_params) : params_(sq_params), cloud_
   b_ = static_cast<float> (rand())/static_cast<float> (RAND_MAX);
 }
 
-void Sampling::transformCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, pcl::PointCloud<PointT>::Ptr& output_cloud)
+void SuperquadricSampling::transformCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, pcl::PointCloud<PointT>::Ptr& output_cloud)
 {
   Eigen::Affine3f transform;
   sq_create_transform(params_.pose, transform);
@@ -19,7 +19,7 @@ void Sampling::transformCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, p
 }
 
 //Similar to sampling in https://github.com/ana-GT/GSoC_PCL
-void Sampling::sample()
+void SuperquadricSampling::sample()
 {
   pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
   double cn, sn, sw, cw;
@@ -154,7 +154,7 @@ static void sample_superEllipse(const double a1, const double a2, const double e
   cloud->height = cloud->points.size();
 }
 
-void Sampling::sample_pilu_fisher()
+void SuperquadricSampling::sample_pilu_fisher()
 {
   pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
   pcl::PointCloud<PointT>::Ptr cloud_s1(new pcl::PointCloud<PointT>);
@@ -186,12 +186,12 @@ void Sampling::sample_pilu_fisher()
   transformCloud(cloud, cloud_);
 }
 
-void Sampling::getCloud(pcl::PointCloud<PointT>::Ptr& cloud)
+void SuperquadricSampling::getCloud(pcl::PointCloud<PointT>::Ptr& cloud)
 {
   cloud = cloud_;
 }
 
-void Sampling::getCloud(sensor_msgs::PointCloud2 &cloud_ros)
+void SuperquadricSampling::getCloud(sensor_msgs::PointCloud2 &cloud_ros)
 {
   pcl::toROSMsg(*cloud_, cloud_ros);
 }

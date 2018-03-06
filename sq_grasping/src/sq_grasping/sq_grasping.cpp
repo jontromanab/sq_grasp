@@ -1,14 +1,14 @@
-#include<sq_grasping/sq_grasping.h>
-#include<sq_fitting/get_sq.h>
-#include<sq_fitting/utils.h>
+#include <sq_grasping/sq_grasping.h>
+#include <sq_fitting/get_sq.h>
+#include <sq_fitting/utils.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include<sq_fitting/sampling.h>
-#include<tf/transform_listener.h>
+#include <sq_fitting/sampling.h>
+#include <tf/transform_listener.h>
 #include <Eigen/Eigen>
 #include <eigen_conversions/eigen_msg.h>
-#include<sq_grasping/create_grasps.h>
-#include<visualization_msgs/MarkerArray.h>
+#include <sq_grasping/create_grasps.h>
+#include <visualization_msgs/MarkerArray.h>
 
 //#include<sq_grasping/create_gripper_marker.h>
 
@@ -46,7 +46,7 @@ void SQGrasping::sampleSQFromSQS(const sq_fitting::sqArray &sqs)
   sq_cloud_pcl->points.resize(0);
   for(int i=0;i<sqs.sqs.size();++i)
   {
-    Sampling* sam = new Sampling(sqs.sqs[i]);
+    SuperquadricSampling* sam = new SuperquadricSampling(sqs.sqs[i]);
     sam->sample_pilu_fisher();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr sq_ind_pcl(new pcl::PointCloud<pcl::PointXYZRGB>());
     sam->getCloud(sq_ind_pcl);

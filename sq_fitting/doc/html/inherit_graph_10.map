@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structSuperquadricFitting_1_1Functor.html" title="SuperquadricFitting\l::Functor\&lt; _Scalar,\l nX, nY \&gt;" alt="" coords="5,5,140,61"/>
+<area shape="rect" id="node1" href="$structSuperquadricFitting_1_1Functor.html" title="SuperquadricFitting\l::Functor\&lt; double \&gt;" alt="" coords="5,5,141,47"/>
+<area shape="rect" id="node2" href="$structSuperquadricFitting_1_1OptimizationFunctor.html" title="The OptimizationFunctor struct. " alt="" coords="189,5,336,47"/>
 </map>

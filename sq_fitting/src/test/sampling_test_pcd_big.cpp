@@ -24,7 +24,7 @@ pointCloudPtr create_sq_cloud(const double e1, const double e2, const double x,
   pose.position.z = z;
   pose.orientation.w = 1.0;
   super.pose = pose;
-  std::unique_ptr<Sampling> samp(new Sampling(super));
+  std::unique_ptr<SuperquadricSampling> samp(new SuperquadricSampling(super));
   samp->sample_pilu_fisher();
   samp->getCloud(cloud);
   return cloud;

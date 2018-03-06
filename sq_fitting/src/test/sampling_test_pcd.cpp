@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
   pose2.orientation.w = 1.0;
   super2.pose = pose2;
 
-  Sampling *sam = new Sampling(super);
+  SuperquadricSampling *sam = new SuperquadricSampling(super);
   sam->sample_pilu_fisher();
   pcl::PointCloud<PointT>::Ptr cloud(new pcl::PointCloud<PointT>);
   sam->getCloud(cloud);
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
 
 
-  Sampling *sam2 = new Sampling(super2);
+  SuperquadricSampling *sam2 = new SuperquadricSampling(super2);
   pcl::PointCloud<PointT>::Ptr cloud2(new pcl::PointCloud<PointT>);
   sam2->sample_pilu_fisher();
   sam2->getCloud(cloud2);

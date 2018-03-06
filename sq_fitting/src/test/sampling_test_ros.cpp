@@ -32,7 +32,7 @@ int main(int argc, char **argv)
   poseArr.header.frame_id  = "/base_link";
   poseArr.header.stamp = ros::Time::now();
 
-  Sampling *sam3 = new Sampling(super3);
+  SuperquadricSampling *sam3 = new SuperquadricSampling(super3);
   sam3->sample_pilu_fisher();
   pcl::PointCloud<PointT>::Ptr cloud3(new pcl::PointCloud<PointT>);
   sam3->getCloud(cloud3);

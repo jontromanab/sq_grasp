@@ -18,14 +18,14 @@ typedef pcl::PointXYZRGB PointT;
 /**
  * @brief Sample superquadrics based on provided parameters
  */
-class Sampling
+class SuperquadricSampling
 {
 public:
   /**
    * @brief Constructor
    * @param sq_params ros msg for superquadrics
    */
-  Sampling(const sq_fitting::sq& sq_params);
+  SuperquadricSampling(const sq_fitting::sq& sq_params);
 
   /**
    * @brief Sampling by superquadric equation

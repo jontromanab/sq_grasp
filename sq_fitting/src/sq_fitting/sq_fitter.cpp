@@ -334,7 +334,7 @@ void SQFitter::fitAndSampleTh(CloudPtr &cloud_in,std::string& method, ParamMulti
   sq_fitting::sq min_param;
   fit->getMinParams(min_param);
 
-  std::unique_ptr<Sampling> samp(new Sampling(min_param));
+  std::unique_ptr<SuperquadricSampling> samp(new SuperquadricSampling(min_param));
   CloudPtr sq_cloud(new PointCloud);
   samp->sample_pilu_fisher();
   samp->getCloud(sq_cloud);
