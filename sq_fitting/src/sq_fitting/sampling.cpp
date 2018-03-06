@@ -1,4 +1,4 @@
-#include<sq_fitting/sampling.h>
+#include <sq_fitting/sampling.h>
 #include <ctime>
 
 Sampling::Sampling(const sq_fitting::sq &sq_params) : params_(sq_params), cloud_(new pcl::PointCloud<PointT>)
@@ -62,7 +62,7 @@ void Sampling::sample()
   transformCloud(cloud, cloud_);
 }
 
-double dTheta_0(double K, double e, double a1, double a2, double t)
+static double dTheta_0(double K, double e, double a1, double a2, double t)
 {
   double factor = K/a2 - pow(t,e);
   double po = pow(fabs(factor), 1.0/e);
@@ -70,7 +70,7 @@ double dTheta_0(double K, double e, double a1, double a2, double t)
   return m;
 }
 
-double dTheta(double K, double e, double a1, double a2, double t)
+static double dTheta(double K, double e, double a1, double a2, double t)
 {
   double num = (cos(t)* cos(t)* sin(t)*sin(t));
   double den1 = a1*a1*pow(fabs(cos(t)), 2*e) * pow(fabs(sin(t)),4);
@@ -78,7 +78,7 @@ double dTheta(double K, double e, double a1, double a2, double t)
   return (K/e)*sqrt(num/(den1+den2));
 }
 
-void Sampling::sample_superEllipse(const double a1, const double a2, const double e, const int N, pcl::PointCloud<PointT>::Ptr &cloud)
+static void sample_superEllipse(const double a1, const double a2, const double e, const int N, pcl::PointCloud<PointT>::Ptr &cloud)
 {
   cloud->points.resize(0);
   pcl::PointCloud<PointT>::Ptr cloud_base(new pcl::PointCloud<PointT>);
