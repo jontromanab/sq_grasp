@@ -187,7 +187,7 @@ void SQFitter::filter_RadiusOutlier(CloudPtr &cloud_in, CloudPtr &cloud_out)
 void SQFitter::mirror_cloud(CloudPtr &cloud_in, CloudPtr &cloud_out)
 {
   double x, y,z;
-  getCenter(cloud_in, x, y, z);
+  sq::getCenter(cloud_in, x, y, z);
   geometry_msgs::Pose pose_in;
   pose_in.position.x = x;
   pose_in.position.y = y;
@@ -262,7 +262,7 @@ void SQFitter::transformFrame(const geometry_msgs::Pose &pose_in, geometry_msgs:
     tf::poseMsgToEigen(inter_pose, transform_in_eigen);
 
     Eigen::Affine3f pose_in_eigen;
-    sq_create_transform(pose_in, pose_in_eigen);
+    sq::sq_create_transform(pose_in, pose_in_eigen);
 
     tf::poseEigenToMsg( transform_in_eigen * pose_in_eigen.cast<double>(), pose_out );
 

@@ -20,6 +20,8 @@
 
 typedef pcl::PointXYZRGB PointT;
 
+namespace sq {
+
 
 
 void sq_clampParameters(double& e1_clamped, double& e2_clamped);
@@ -57,6 +59,6 @@ void getTransformPose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pos
 
 void getCompletePose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pose &pose);
 
-
+}//end of namespace
 
 #endif // UTILS_H

@@ -58,7 +58,7 @@ void transformFrame(const std::string& input_frame, const std::string& output_fr
       Eigen::Affine3d transform_in_eigen;
       tf::poseMsgToEigen(inter_pose, transform_in_eigen);
       Eigen::Affine3f pose_in_eigen;
-      sq_create_transform(pose_in, pose_in_eigen);
+      sq::sq_create_transform(pose_in, pose_in_eigen);
       tf::poseEigenToMsg( transform_in_eigen * pose_in_eigen.cast<double>(), pose_out );
     }
     catch(tf::TransformException ex)

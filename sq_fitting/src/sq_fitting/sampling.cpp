@@ -14,7 +14,7 @@ SuperquadricSampling::SuperquadricSampling(const sq_fitting::sq &sq_params) : pa
 void SuperquadricSampling::transformCloud(const pcl::PointCloud<PointT>::Ptr &input_cloud, pcl::PointCloud<PointT>::Ptr& output_cloud)
 {
   Eigen::Affine3f transform;
-  sq_create_transform(params_.pose, transform);
+  sq::sq_create_transform(params_.pose, transform);
   pcl::transformPointCloud(*input_cloud, *output_cloud, transform);
 }
 

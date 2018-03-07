@@ -2,7 +2,7 @@
 //#include <ceres/jet.h>
 
 
-
+namespace sq{
 
 
 
@@ -391,3 +391,4 @@ void getCompletePose(pcl::PointCloud<PointT>::Ptr& cloud_in, geometry_msgs::Pose
    }
 }
 
+} //end of namespace

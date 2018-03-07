@@ -43,14 +43,14 @@ void SuperquadricFitting::preAlign(Eigen::Affine3f &transform, Eigen::Vector3f &
     {
         //centroid::my method
       double x, y, z;
-      getCenter(cloud_, x, y,z);
+      sq::getCenter(cloud_, x, y,z);
       Eigen::Affine3f transformation_centroid = Eigen::Affine3f::Identity();
       transformation_centroid.translation()<<-x, -y, -z;
 
       //Pose estimation
       //my method
       geometry_msgs::Pose pose;
-      getTransformPose(cloud_, pose);
+      sq::getTransformPose(cloud_, pose);
       pose.position.x = 0;
       pose.position.y = 0;
       pose.position.z = 0;
@@ -173,7 +173,7 @@ void SuperquadricFitting::fit_Param(sq_fitting::sq& param, double& final_error)
 
   Eigen::Affine3d trans_new = (transform_inv.inverse()).cast<double>();
   double tx, ty, tz, ax, ay, az;
-  getParamFromPose(trans_new, tx, ty, tz, ax, ay, az);
+  sq::getParamFromPose(trans_new, tx, ty, tz, ax, ay, az);
 
 
 
@@ -201,13 +201,13 @@ void SuperquadricFitting::fit_Param(sq_fitting::sq& param, double& final_error)
   param.a3 = xvec[2];
   double e1 = xvec[3];
   double e2 = xvec[4];
-  sq_clampParameters(e1, e2);
+  sq::sq_clampParameters(e1, e2);
   param.e1 = e1;
   param.e2 = e2;
 
   Eigen::Affine3d transform_lm;
   //std::cout<<"Transformation frm LM: "<<xvec[5]<<" "<<xvec[6]<<" "<< xvec[7]<<" "<<xvec[8]<<" "<<xvec[9]<<" "<<xvec[10]<<std::endl;
-  create_transformation_matrix(xvec[5], xvec[6], xvec[7], xvec[8], xvec[9], xvec[10], transform_lm);
+  sq::create_transformation_matrix(xvec[5], xvec[6], xvec[7], xvec[8], xvec[9], xvec[10], transform_lm);
 
   Eigen::Affine3f transform = transform_inv.inverse();
   Eigen::Affine3d final_transform = transform.cast<double>();// * transform_lm ;
@@ -243,7 +243,7 @@ void SuperquadricFitting::fit_Param(sq_fitting::sq& param, double& final_error)
   param_lm.pose.orientation.y = q1.y();
   param_lm.pose.orientation.z = q1.z();
   param_lm.pose.orientation.w = q1.w();
-  final_error = sq_error(cloud_, param_lm);
+  final_error = sq::sq_error(cloud_, param_lm);
 }
 
 void SuperquadricFitting::fit()
@@ -280,7 +280,7 @@ int SuperquadricFitting::OptimizationFunctor::operator ()(const Eigen::VectorXd 
               c = xvec[2], e1 = xvec[3],
               e2 =xvec[4];
   Eigen::Affine3d trans;
-  create_transformation_matrix(xvec[5], xvec[6], xvec[7], xvec[8], xvec[9], xvec[10], trans);
+  sq::create_transformation_matrix(xvec[5], xvec[6], xvec[7], xvec[8], xvec[9], xvec[10], trans);
   pcl::PointCloud<PointT>::Ptr cloud_transformed(new pcl::PointCloud<PointT>);
   pcl::transformPointCloud(*cloud_new, *cloud_transformed, trans);
   for(int i=0;i<values();++i)
@@ -291,7 +291,7 @@ int SuperquadricFitting::OptimizationFunctor::operator ()(const Eigen::VectorXd 
     p.x = xyz_tr[0];
     p.y = xyz_tr[1];
     p.z = xyz_tr[2];
-    fvec[i] = op * sq_function(xyz_tr[0], xyz_tr[1], xyz_tr[2], a,b,c,e1,e2) ;
+    fvec[i] = op * sq::sq_function(xyz_tr[0], xyz_tr[1], xyz_tr[2], a,b,c,e1,e2) ;
   }
   return (0);
 }
