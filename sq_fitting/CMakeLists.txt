@@ -152,9 +152,6 @@ target_link_libraries(sampling_test_pcd_big sampling  ${catkin_LIBRARIES})
 #target_link_libraries(seg_and_fit_test_pcd segmentation fitting sampling ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
 
 
-#add_executable(show_convex_hull src/test/show_convex_hull.cpp)
-#add_dependencies(show_convex_hull ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-#target_link_libraries(show_convex_hull segmentation utils ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
 
 add_executable(get_sq_client src/test/get_sq_client.cpp)
 add_dependencies(get_sq_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

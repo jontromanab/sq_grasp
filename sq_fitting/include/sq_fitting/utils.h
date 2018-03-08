@@ -23,9 +23,17 @@ typedef pcl::PointXYZRGB PointT;
 namespace sq {
 
 
-
+/**
+ * @brief clamp e1 and e1 parameter between 0.1 and 1.9
+ */
 void sq_clampParameters(double& e1_clamped, double& e2_clamped);
 
+/**
+ * @brief calculates distance between superquadric and pcl point
+ * @param point pcl point to be compared with this superquadric
+ * @param param superquadrics parameter
+ * @return distance between this superquadric and the point
+ */
 double sq_function(const PointT& point, const sq_fitting::sq& param);
 
 double sq_function(const double &x, const double &y, const double &z, const double &a, const double &b, const double &c, const double &e1,
