@@ -36,6 +36,10 @@ void sq_clampParameters(double& e1_clamped, double& e2_clamped);
  */
 double sq_function(const PointT& point, const sq_fitting::sq& param);
 
+  /**
+ * @brief calculates distance between superquadric and pcl point
+ * @return distance between this superquadric and the point
+ */
 double sq_function(const double &x, const double &y, const double &z, const double &a, const double &b, const double &c, const double &e1,
                    const double &e2);
 
