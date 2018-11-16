@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_combined(new pcl::PointCloud<pcl::PointXYZRGB>());
 
+
   sq_fitting::sq super;
   super.a1 = 0.012925;
   super.a2 = 0.0064596;
@@ -44,17 +45,16 @@ int main(int argc, char *argv[])
   sam->getCloud(cloud);
   std::cout<<"size of the first sampled cloud: "<<cloud->points.size()<<std::endl;
 
-
-
   SuperquadricSampling *sam2 = new SuperquadricSampling(super2);
-  pcl::PointCloud<PointT>::Ptr cloud2(new pcl::PointCloud<PointT>);
   sam2->sample_pilu_fisher();
+  pcl::PointCloud<PointT>::Ptr cloud2(new pcl::PointCloud<PointT>);
   sam2->getCloud(cloud2);
   std::cout<<"size of the second sampled cloud: "<<cloud2->points.size()<<std::endl;
 
 
   *cloud_combined = *cloud2;
   //*cloud_combined+= *cloud2;
+
 
   std::cout<<"Size of combined superquadrics cloud: "<<cloud_combined->points.size()<<std::endl;
   pcl::io::savePCDFileASCII ("superquadrics.pcd", *cloud_combined);
