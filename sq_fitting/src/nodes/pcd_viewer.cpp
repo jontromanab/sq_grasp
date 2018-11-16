@@ -10,7 +10,7 @@ void display_pcd(std::string pcdFile){ // name of the file: str
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::io::loadPCDFile (pcdFile, *cloud);
 
-    pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+    pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer"); // this input is goint to be the title of the window of the viewer
     viewer.showCloud (cloud);
     while (!viewer.wasStopped ())
     {

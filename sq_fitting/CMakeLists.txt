@@ -157,8 +157,8 @@ add_executable(get_sq_client src/test/get_sq_client.cpp)
 add_dependencies(get_sq_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(get_sq_client ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
 
-add_executable(sq_test_node src/sq_test_node.cpp)
-target_link_libraries(sq_test_node ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
+#add_executable(sq_test_node src/sq_test_node.cpp)
+#target_link_libraries(sq_test_node ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
 
 add_executable(pcd_viewer src/nodes/pcd_viewer.cpp)
 target_link_libraries(pcd_viewer ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
