@@ -160,5 +160,12 @@ target_link_libraries(get_sq_client ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
 add_executable(sq_test_node src/sq_test_node.cpp)
 target_link_libraries(sq_test_node ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
 
+add_executable(pcd_viewer src/nodes/pcd_viewer.cpp)
+target_link_libraries(pcd_viewer ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
+
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
 
 
