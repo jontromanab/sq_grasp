@@ -196,4 +196,4 @@ void SuperquadricSampling::getCloud(sensor_msgs::PointCloud2 &cloud_ros)
   pcl::toROSMsg(*cloud_, cloud_ros);
 }
 
-// test
+// test 2
