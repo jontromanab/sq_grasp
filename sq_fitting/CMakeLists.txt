@@ -168,4 +168,6 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 
-
+add_executable(sampling_test_pcd_st src/test/sampling_test_pcd_st.cpp)
+add_dependencies(sampling_test_pcd_st ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(sampling_test_pcd_st sampling  ${catkin_LIBRARIES})

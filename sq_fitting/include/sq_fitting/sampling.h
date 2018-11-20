@@ -33,9 +33,14 @@ public:
   void sample();
 
   /**
-   * @brief Sampling by Pilu Fisher method
+   * @brief Sampling by Pilu Fisher method for superellipsoids
    */
   void sample_pilu_fisher();
+
+  /**
+   * @brief Sampling by Pilu Fisher method for superteroids
+   */
+  void sample_pilu_fisher_st();
 
   /**
    * @brief obtain cloud

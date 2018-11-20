@@ -25,8 +25,7 @@ int main(int argc, char **argv)
   std::cout << "enter the name of the file: " << std::endl;
   std::string fileName;
   cin >> fileName;
-
+ //fileName = "superquadrics_st.pcd";
   display_pcd(fileName);
 
-  ROS_INFO("Hello world!");
 }
