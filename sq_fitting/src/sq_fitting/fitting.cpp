@@ -264,7 +264,7 @@ void SuperquadricFitting::fit()
     }
   }
   params_ = min_param;
-  //min_error_ = min_fit_error; std::cout<<"min error is: "<<min_error_<<std::endl;
+  min_error_ = min_fit_error; //std::cout<<"min error is: "<<min_error_<<std::endl;
 }
 
 void SuperquadricFitting::getMinError(double& error)

@@ -293,7 +293,7 @@ public:
    * @brief get_segmented_objects get detected objects
    * @return  a vector of point clouds
    */
-  std::vector<PointCloud> get_segmented_objects_simple();
+  std::vector<CloudPtr> get_segmented_objects_simple();
 
   /**
    * @brief get_plane_cloud returns plane cloud

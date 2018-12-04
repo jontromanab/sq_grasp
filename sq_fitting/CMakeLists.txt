@@ -147,9 +147,9 @@ target_link_libraries(sampling_test_pcd_big sampling  ${catkin_LIBRARIES})
 #add_dependencies(seg_and_fit_test_ros ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 #target_link_libraries(seg_and_fit_test_ros segmentation fitting sampling ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
 
-#add_executable(seg_and_fit_test_pcd src/test/seg_and_fit_test_pcd.cpp)
-#add_dependencies(seg_and_fit_test_pcd ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-#target_link_libraries(seg_and_fit_test_pcd segmentation fitting sampling ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
+add_executable(seg_and_fit_test_pcd src/test/seg_and_fit_test_pcd.cpp)
+add_dependencies(seg_and_fit_test_pcd ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(seg_and_fit_test_pcd segmentation fitting sampling ${catkin_LIBRARIES} ${PCL_INCLUDE_DIR} )
 
 
 

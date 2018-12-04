@@ -201,10 +201,10 @@ void lccp_segmentation::detectObjectsOnTable(CloudPtr cloud, double zmin, double
   }
 }
 
-std::vector<PointCloud> lccp_segmentation::get_segmented_objects_simple(){
-  std::vector<PointCloud> obj_vec;
+std::vector<CloudPtr> lccp_segmentation::get_segmented_objects_simple(){
+  std::vector<CloudPtr> obj_vec;
   for(int i = 0; i < this->detected_objects_.size(); ++i)
-    obj_vec.push_back(detected_objects_[i].obj_cloud);
+    obj_vec.push_back(detected_objects_[i].obj_cloud.makeShared());
   return obj_vec;
 }
 
